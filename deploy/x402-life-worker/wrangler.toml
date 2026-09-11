@@ -1,0 +1,13 @@
+name = "x402-life-origin"
+main = "worker.js"
+compatibility_date = "2026-09-10"
+compatibility_flags = ["nodejs_compat"]
+account_id = "7640372571bf2d69ed5d58a6a6d8929e"
+
+[[routes]]
+pattern = "x402.life/*"
+zone_name = "x402.life"
+
+[[routes]]
+pattern = "www.x402.life/*"
+zone_name = "x402.life"

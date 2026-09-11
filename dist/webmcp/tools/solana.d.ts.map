@@ -1,0 +1,1 @@
+{"version":3,"file":"solana.d.ts","sourceRoot":"","sources":["../../../src/webmcp/tools/solana.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,cAAc,EAAE,MAAM,0BAA0B,CAAC;AAE/D,OAAO,KAAK,EAAE,UAAU,EAAE,MAAM,aAAa,CAAC;AAU9C,wBAAgB,uBAAuB,CAAC,QAAQ,EAAE,cAAc,GAAG,UAAU,EAAE,CAwH9E"}

@@ -1,0 +1,1 @@
+{"version":3,"file":"toolResults.js","sourceRoot":"","sources":["../../src/mcp/toolResults.ts"],"names":[],"mappings":"AAAA,MAAM,UAAU,UAAU,CAAoC,IAAO,EAAE,IAAa;IAClF,OAAO;QACL,iBAAiB,EAAE,IAAI;QACvB,OAAO,EAAE;YACP;gBACE,IAAI,EAAE,MAAe;gBACrB,IAAI,EAAE,IAAI,IAAI,IAAI,CAAC,SAAS,CAAC,IAAI,CAAC;aACnC;SACF;KACF,CAAC;AACJ,CAAC"}

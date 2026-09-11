@@ -1,0 +1,43 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "pumpfun",
+  "version": "0.1.0",
+  "description": "x402 agency live Pump.fun tape on x402.life.",
+  "author": {
+    "name": "x402 agency",
+    "url": "https://x402.life"
+  },
+  "homepage": "https://x402.life",
+  "keywords": [
+    "x402",
+    "x402.life",
+    "pumpfun",
+    "solana",
+    "mcp"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "x402 agency",
+        "shortDescription": "Live Pump.fun launches from x402.life on Fly.",
+        "longDescription": "x402 agency watches the live Pump.fun launch tape through https://x402.life/pump/mcp on Fly. Check relay health, list recent token launches, look up a mint, and open a pop-out tape widget. Read-only live data — this plugin never signs, buys, sells, or launches tokens.",
+        "developerName": "x402 agency",
+        "category": "Productivity",
+        "capabilities": [
+          "Read"
+        ],
+        "websiteURL": "https://x402.life",
+        "defaultPrompt": [
+          "Is the x402 agency Pump.fun relay up?",
+          "What just launched on pump.fun via x402.life?",
+          "Show the x402 agency live tape widget."
+        ],
+        "brandColor": "#14F195",
+        "logo": "./assets/logo.png",
+        "composerIcon": "./assets/logo.png",
+        "privacyPolicyURL": "https://x402.life/privacy",
+        "termsOfServiceURL": "https://x402.life/terms"
+      }
+    }
+  }
+}

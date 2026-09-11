@@ -1,0 +1,34 @@
+{
+  "name": "@x402solana/cli",
+  "version": "0.1.0",
+  "private": false,
+  "description": "x402 SIWX login and paper OODA loop command-line tools.",
+  "type": "module",
+  "bin": {
+    "x402": "dist/x402.js",
+    "ooda": "dist/ooda.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node build.mjs",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.98.4"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Solizardking/solgpt---nl-trading-desk--5-.git",
+    "directory": "cli"
+  },
+  "license": "MIT"
+}

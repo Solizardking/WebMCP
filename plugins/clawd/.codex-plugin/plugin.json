@@ -1,0 +1,39 @@
+{
+  "name": "clawd",
+  "version": "0.1.0",
+  "description": "Pump.fun fee references and Solana agent guides.",
+  "author": {
+    "name": "Clawd",
+    "url": "https://solgpt.us"
+  },
+  "homepage": "https://clawdcompute.us/developers",
+  "keywords": [
+    "clawd",
+    "solana",
+    "pumpfun",
+    "mcp"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Clawd",
+    "shortDescription": "Pump.fun fee references and Solana agent guides.",
+    "longDescription": "Clawd provides documented Pump.fun and PumpSwap fee tables and bundled Solana agent guides. Read reference material, compare fee tiers, and understand workflows before taking action in your wallet.",
+    "developerName": "Clawd",
+    "category": "Productivity",
+    "capabilities": [
+      "Read"
+    ],
+    "websiteURL": "https://clawdcompute.us/developers",
+    "defaultPrompt": [
+      "Show the documented Pump.fun fee tiers.",
+      "List the available Clawd Solana guides.",
+      "Explain the Pump.fun workflow using its guide."
+    ],
+    "brandColor": "#F97316",
+    "logo": "./assets/logo.png",
+    "composerIcon": "./assets/logo.png",
+    "privacyPolicyURL": "https://clawdcompute.us/privacy",
+    "termsOfServiceURL": "https://clawdcompute.us/terms"
+  }
+}

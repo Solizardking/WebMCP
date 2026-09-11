@@ -1,0 +1,42 @@
+{
+  "name": "@x402solana/webmcp",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Shared WebMCP + MCP primitives for SOLGPT, Clawd Compute, x402.life, and Solana Agent Desk.",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js",
+    "./webmcp": "./dist/webmcp/index.js",
+    "./mcp": "./dist/mcp/index.js",
+    "./openai": "./dist/openai/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist",
+    "test": "npm run build && node --test tests/*.test.mjs",
+    "start": "npm run build && node examples/node/server.mjs",
+    "ask": "npm run build && node --env-file=../.env.local examples/node/ask.mjs",
+    "smoke:plugin": "node scripts/smoke-plugin.mjs",
+    "package:plugin": "python3 scripts/package-plugin.py clawd && python3 scripts/package-plugin.py pumpfun"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.0.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "types": "./dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT"
+}

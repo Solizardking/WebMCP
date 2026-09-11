@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "pumpfun": {
+      "type": "http",
+      "url": "https://x402.life/pump/mcp"
+    }
+  }
+}
