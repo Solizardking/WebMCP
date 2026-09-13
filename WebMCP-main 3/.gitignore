@@ -1,0 +1,7 @@
+node_modules
+.webmcp*
+.env
+build
+sandbox
+.idea
+.DS_Store

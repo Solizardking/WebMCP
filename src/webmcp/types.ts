@@ -20,11 +20,15 @@ export interface WebMCPModelContext {
   registerTool(
     tool: WebMCPTool,
     options?: { signal?: AbortSignal; exposedTo?: string[] },
-  ): Promise<void>;
+  ): Promise<void> | void;
+  unregisterTool?(name: string): void;
 }
 
 declare global {
   interface Document {
+    modelContext?: WebMCPModelContext;
+  }
+  interface Navigator {
     modelContext?: WebMCPModelContext;
   }
 }
