@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "openrouter": {
+      "command": "/bin/sh",
+      "args": [
+        "/Users/8bit/Downloads/solgpt---nl-trading-desk (5)/clawd-webmcp/WebMCP/openrouter-mcp-multimodal-main/scripts/start-local.sh"
+      ],
+      "env": {
+        "OPENROUTER_NODE": "/Users/8bit/.nvm/versions/node/v24.15.0/bin/node"
+      }
+    }
+  }
+}

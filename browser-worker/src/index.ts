@@ -1,65 +1,117 @@
 import { DurableObject } from "cloudflare:workers";
-
-/**
- * Welcome to Cloudflare Workers! This is your first Durable Objects application.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your Durable Object in action
- * - Run `npm run deploy` to publish your application
- *
- * Bind resources to your worker in `wrangler.jsonc`. After adding bindings, a type definition for the
- * `Env` object can be regenerated with `npm run cf-typegen`.
- *
- * Learn more at https://developers.cloudflare.com/durable-objects
- */
-
-
-/** A Durable Object's behavior is defined in an exported Javascript class */
-export class MyDurableObject extends DurableObject {
-	/**
-	 * The constructor is invoked once upon creation of the Durable Object, i.e. the first call to
-	 * 	`DurableObjectStub::get` for a given identifier (no-op constructors can be omitted)
-	 *
-	 * @param ctx - The interface for interacting with Durable Object state
-	 * @param env - The interface to reference bindings declared in wrangler.jsonc
-	 */
-	constructor(ctx: DurableObjectState, env: Env) {
-		super(ctx, env);
-	}
-
-	/**
-	 * The Durable Object exposes an RPC method sayHello which will be invoked when a Durable
-	 *  Object instance receives a request from a Worker via the same method invocation on the stub
-	 *
-	 * @param name - The name provided to a Durable Object instance from a Worker
-	 * @returns The greeting to be sent back to the Worker
-	 */
-	async sayHello(name: string): Promise<string> {
-		return `Hello, ${name}!`;
-	}
-}
+import puppeteer from "@cloudflare/puppeteer";
 
 export default {
-	/**
-	 * This is the standard fetch handler for a Cloudflare Worker
-	 *
-	 * @param request - The request submitted to the Worker from the client
-	 * @param env - The interface to reference bindings declared in wrangler.jsonc
-	 * @param ctx - The execution context of the Worker
-	 * @returns The response to be sent back to the client
-	 */
-	async fetch(request, env, ctx): Promise<Response> {
-		// Create a stub to open a communication channel with the Durable Object
-		// instance named "foo".
-		//
-		// Requests from all Workers to the Durable Object instance named "foo"
-		// will go to a single remote Durable Object instance.
-		const stub = env.MY_DURABLE_OBJECT.getByName("foo");
+  async fetch(request, env): Promise<Response> {
+    if (new URL(request.url).pathname === "/screenshots") {
+      return env.BROWSER.getByName("browser").fetch(request);
+    }
+    if (request.method !== "GET") {
+      return new Response("Method not allowed", { status: 405, headers: { Allow: "GET" } });
+    }
+    const input = new URL(request.url).searchParams.get("url");
+    if (!input) {
+      return new Response("Please add an ?url=https://example.com/ parameter", { status: 400 });
+    }
 
-		// Call the `sayHello()` RPC method on the stub to invoke the method on
-		// the remote Durable Object instance.
-		const greeting = await stub.sayHello("world");
+    let url: string;
+    try {
+      const target = new URL(input);
+      if (!["http:", "https:"].includes(target.protocol) || target.username || target.password) {
+        throw new Error("Invalid URL");
+      }
+      url = target.toString();
+    } catch {
+      return new Response("Please provide a valid HTTP or HTTPS URL without credentials", { status: 400 });
+    }
+    // KV keys have a byte limit; hashing also supports long target URLs.
+    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(url));
+    const key = "jpeg:" + Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
 
-		return new Response(greeting);
-	},
+    try {
+      let img = await env.BROWSER_KV_DEMO.get(key, { type: "arrayBuffer" });
+      const cached = img !== null;
+      if (img === null) {
+        const browser = await puppeteer.launch(env.MYBROWSER);
+        try {
+          const page = await browser.newPage();
+          await page.goto(url, { waitUntil: "networkidle2", timeout: 30_000 });
+          const screenshot = await page.screenshot({ type: "jpeg" });
+          img = new Uint8Array(screenshot).buffer;
+          await env.BROWSER_KV_DEMO.put(key, img, { expirationTtl: 60 * 60 * 24 });
+        } finally {
+          await browser.close();
+        }
+      }
+      return new Response(img, {
+        headers: { "content-type": "image/jpeg", "x-screenshot-cache": cached ? "HIT" : "MISS" },
+      });
+    } catch {
+      return new Response("Unable to capture or cache screenshot. Please try again.", { status: 502 });
+    }
+  },
 } satisfies ExportedHandler<Env>;
+
+// Retain the original migration class for existing deployments.
+export class MyDurableObject extends DurableObject<Env> {
+  async sayHello(name: string): Promise<string> { return `Hello, ${name}!`; }
+}
+
+const IDLE_MS = 60_000;
+const VIEWPORTS = [
+  { width: 1920, height: 1080 }, { width: 1366, height: 768 },
+  { width: 1536, height: 864 }, { width: 360, height: 640 },
+  { width: 414, height: 896 },
+];
+
+export class Browser extends DurableObject<Env> {
+  private browser?: Awaited<ReturnType<typeof puppeteer.launch>>;
+  private busy = false;
+  private lastUsed = 0;
+
+  async fetch(request: Request): Promise<Response> {
+    if (request.method !== "GET") {
+      return new Response("Method not allowed", { status: 405, headers: { Allow: "GET" } });
+    }
+    // Avoid interleaving viewport changes and launching duplicate browsers.
+    if (this.busy) return new Response("Screenshot capture in progress", { status: 429 });
+    this.busy = true;
+    let page: Awaited<ReturnType<NonNullable<typeof this.browser>["newPage"]>> | undefined;
+    const files: string[] = [];
+    try {
+      // Arm cleanup before launching, including on failure paths.
+      await this.ctx.storage.setAlarm(Date.now() + 10_000);
+      const reused = Boolean(this.browser?.isConnected());
+      if (!reused) this.browser = await puppeteer.launch(this.env.MYBROWSER);
+      page = await this.browser!.newPage();
+      const folder = `${new Date(Math.floor(Date.now() / 300_000) * 300_000).toISOString()}/${crypto.randomUUID()}`;
+      for (const viewport of VIEWPORTS) {
+        await page.setViewport(viewport);
+        await page.goto("https://workers.cloudflare.com/", { waitUntil: "networkidle2", timeout: 30_000 });
+        const screenshot = await page.screenshot({ type: "jpeg" });
+        const key = `${folder}/screenshot_${viewport.width}x${viewport.height}.jpg`;
+        await this.env.BUCKET.put(key, screenshot, { httpMetadata: { contentType: "image/jpeg" } });
+        files.push(key);
+      }
+      return Response.json({ success: true, reusedBrowser: reused, files });
+    } catch (error) {
+      console.error("R2 screenshot capture failed", error);
+      return Response.json({ success: false, error: "Screenshot capture failed", files }, { status: 502 });
+    } finally {
+      try { await page?.close(); } catch { /* Browser may have disconnected. */ }
+      this.lastUsed = Date.now();
+      this.busy = false;
+      await this.ctx.storage.setAlarm(Date.now() + 10_000);
+    }
+  }
+
+  async alarm(): Promise<void> {
+    if (this.busy || Date.now() - this.lastUsed < IDLE_MS) {
+      await this.ctx.storage.setAlarm(Date.now() + 10_000);
+      return;
+    }
+    const browser = this.browser;
+    this.browser = undefined;
+    try { await browser?.close(); } catch { /* Already disconnected. */ }
+  }
+}

@@ -100,6 +100,7 @@ let requestIdCounter = 1;
 
 // Map to store pending requests
 const pendingRequests = {};
+let registrationQueue = Promise.resolve();
 
 
 // Function to verify client token during WebSocket handshake
@@ -188,7 +189,10 @@ wss.on('connection', (ws, req) => {
         // Register message handler specifically for registration
         ws.once('message', async (message) => {
             clearTimeout(registrationTimeout);
-
+            const previous = registrationQueue;
+            let release;
+            registrationQueue = new Promise(resolve => { release = resolve; });
+            await previous;
             try {
                 // The message should be base64 encoded JSON with server and token
                 const encodedData = message.toString();
@@ -263,7 +267,7 @@ wss.on('connection', (ws, req) => {
                     message: 'Registration error'
                 }));
                 ws.close(1011, 'Registration error');
-            }
+            } finally { release(); }
         });
 
         return; // Don't proceed with the normal connection handling
@@ -333,19 +337,19 @@ wss.on('connection', (ws, req) => {
                     break;
 
                 case 'toolResponse':
-                    handleToolResponse(data);
+                    handleToolResponse(ws, data);
                     break;
 
                 case 'promptResponse':
-                    handlePromptResponse(data);
+                    handlePromptResponse(ws, data);
                     break;
 
                 case 'resourceResponse':
-                    handleResourceResponse(data);
+                    handleResourceResponse(ws, data);
                     break;
 
                 case 'samplingResponse':
-                    handleSamplingResponse(data);
+                    handleSamplingResponse(ws, data);
                     break;
 
                 default:
@@ -763,6 +767,7 @@ function handleCallTool(ws, callerChannel, data) {
     pendingRequests[requestId] = {
         originalId: id,
         requesterWs: ws,
+        responderWs: targetClient,
         timestamp: Date.now()
     };
 
@@ -848,6 +853,7 @@ function handleGetPrompt(ws, callerChannel, data) {
     pendingRequests[requestId] = {
         originalId: id,
         requesterWs: ws,
+        responderWs: targetClient,
         timestamp: Date.now()
     };
 
@@ -941,6 +947,7 @@ function handleReadResource(ws, callerChannel, data) {
     pendingRequests[requestId] = {
         originalId: id,
         requesterWs: ws,
+        responderWs: targetClient,
         timestamp: Date.now()
     };
 
@@ -973,11 +980,11 @@ function handleReadResource(ws, callerChannel, data) {
 }
 
 // Handle tool response
-function handleToolResponse(data) {
+function handleToolResponse(ws, data) {
     const {id, result, error} = data;
 
     // Check if this is a response to a pending request
-    if (!pendingRequests[id]) {
+    if (!pendingRequests[id] || pendingRequests[id].responderWs !== ws) {
         console.error(`No pending request found for ID: ${id}`);
         return;
     }
@@ -1000,11 +1007,11 @@ function handleToolResponse(data) {
 }
 
 // Handle prompt response
-function handlePromptResponse(data) {
+function handlePromptResponse(ws, data) {
     const {id, result, error} = data;
 
     // Check if this is a response to a pending request
-    if (!pendingRequests[id]) {
+    if (!pendingRequests[id] || pendingRequests[id].responderWs !== ws) {
         console.error(`No pending request found for ID: ${id}`);
         return;
     }
@@ -1027,11 +1034,11 @@ function handlePromptResponse(data) {
 }
 
 // Handle resource response
-function handleResourceResponse(data) {
+function handleResourceResponse(ws, data) {
     const {id, result, error} = data;
 
     // Check if this is a response to a pending request
-    if (!pendingRequests[id]) {
+    if (!pendingRequests[id] || pendingRequests[id].responderWs !== ws) {
         console.error(`No pending request found for ID: ${id}`);
         return;
     }
@@ -1054,11 +1061,11 @@ function handleResourceResponse(data) {
 }
 
 // Handle sampling response
-function handleSamplingResponse(data) {
+function handleSamplingResponse(ws, data) {
     const {id, result, error} = data;
 
     // Check if this is a response to a pending request
-    if (!pendingRequests[id]) {
+    if (!pendingRequests[id] || pendingRequests[id].responderWs !== ws) {
         console.error(`No pending request found for ID: ${id}`);
         return;
     }
@@ -1136,6 +1143,7 @@ function handleCreateSamplingMessage(ws, callerChannel, data) {
     pendingRequests[requestId] = {
         originalId: id,
         requesterWs: ws,
+        responderWs: targetClient,
         timestamp: Date.now()
     };
 

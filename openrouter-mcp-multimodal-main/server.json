@@ -1,0 +1,290 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.stabgan/openrouter-multimodal",
+  "description": "Chat with 300+ LLMs via OpenRouter. Analyze and generate images, audio, and video from MCP.",
+  "repository": {
+    "url": "https://github.com/stabgan/openrouter-mcp-multimodal",
+    "source": "github"
+  },
+  "version": "5.0.1",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@stabgan/openrouter-mcp-multimodal",
+      "version": "5.0.1",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "OPENROUTER_API_KEY",
+          "description": "OpenRouter API key. Get one free at https://openrouter.ai/keys",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_DEFAULT_MODEL",
+          "description": "Default model for chat + analyze tools. Defaults to google/gemma-4-26b-a4b-it:free.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_OUTPUT_DIR",
+          "description": "Sandbox root for save_path on generate_* tools. Defaults to the current working directory.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_INPUT_DIR",
+          "description": "Local read sandbox for analyze_* file paths. Falls back to OPENROUTER_OUTPUT_DIR, then cwd.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_ALLOW_UNSAFE_PATHS",
+          "description": "Set to 1 to disable input/output path sandboxes (legacy v2 behavior).",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_INLINE_MAX_BYTES",
+          "description": "Global inline media ceiling (bytes) for tool results when save_path is unset. Default 1048576 (1 MiB).",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_IMAGE_INLINE_MAX_BYTES",
+          "description": "Image inline ceiling (bytes). Falls back to OPENROUTER_INLINE_MAX_BYTES.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_AUDIO_INLINE_MAX_BYTES",
+          "description": "Audio inline ceiling (bytes). Falls back to OPENROUTER_INLINE_MAX_BYTES.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_VIDEO_INLINE_MAX_BYTES",
+          "description": "Video inline ceiling (bytes). Default 10485760 (10 MiB).",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_MAX_TOKENS",
+          "description": "Default max_tokens for chat_completion when unset in the request.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_PROVIDER_SORT",
+          "description": "price / throughput / latency",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_PROVIDER_IGNORE",
+          "description": "CSV of provider slugs to exclude.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_PROVIDER_ONLY",
+          "description": "JSON array or CSV of provider slugs to allow (prefer over ignore).",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_PROVIDER_ORDER",
+          "description": "JSON array or CSV of preferred provider IDs.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_PROVIDER_QUANTIZATIONS",
+          "description": "CSV of quantization levels (fp16,int8).",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_PROVIDER_REQUIRE_PARAMETERS",
+          "description": "true/false. Require providers to support all request params.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_PROVIDER_DATA_COLLECTION",
+          "description": "allow/deny",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_PROVIDER_ALLOW_FALLBACKS",
+          "description": "true/false",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_CACHE_RESPONSES",
+          "description": "Enable response caching server-wide. Sends X-OpenRouter-Cache: true on every chat/analyze call unless overridden per-request. Zero tokens billed on cache hits.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_INCLUDE_REASONING",
+          "description": "Enable reasoning tokens passthrough server-wide. Adds _meta.reasoning to chat_completion responses for DeepSeek R1 / Gemini Thinking / Opus 4.7.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_MODEL_CACHE_TTL_MS",
+          "description": "Model list cache TTL in milliseconds. Default 3600000 (1 hour).",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_LOG_LEVEL",
+          "description": "Server log level: error, warn, info, or debug.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_MAX_RESULT_TEXT_CHARS",
+          "description": "Cap text in chat/rerank tool results (chars). Default 512000. Set 0 to disable.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_ASYNC_JOBS_MEMORY_MAX",
+          "description": "In-memory async chat jobs before eviction. Default 200. Set 0 to disable cap.",
+          "isRequired": false,
+          "format": "string"
+        }
+      ]
+    },
+    {
+      "registryType": "oci",
+      "identifier": "docker.io/stabgan/openrouter-mcp-multimodal:5.0.1",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "OPENROUTER_API_KEY",
+          "description": "OpenRouter API key. Get one free at https://openrouter.ai/keys",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_OUTPUT_DIR",
+          "description": "Sandbox root for save_path on generate_* tools. Defaults to the current working directory.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_INPUT_DIR",
+          "description": "Local read sandbox for analyze_* file paths. Falls back to OPENROUTER_OUTPUT_DIR, then cwd.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_ALLOW_UNSAFE_PATHS",
+          "description": "Set to 1 to disable input/output path sandboxes (legacy v2 behavior).",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_INLINE_MAX_BYTES",
+          "description": "Global inline media ceiling (bytes) for tool results when save_path is unset. Default 1048576 (1 MiB).",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_IMAGE_INLINE_MAX_BYTES",
+          "description": "Image inline ceiling (bytes). Falls back to OPENROUTER_INLINE_MAX_BYTES.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_AUDIO_INLINE_MAX_BYTES",
+          "description": "Audio inline ceiling (bytes). Falls back to OPENROUTER_INLINE_MAX_BYTES.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_VIDEO_INLINE_MAX_BYTES",
+          "description": "Video inline ceiling (bytes). Default 10485760 (10 MiB).",
+          "isRequired": false,
+          "format": "string"
+        }
+      ]
+    },
+    {
+      "registryType": "pypi",
+      "identifier": "mcp-server-openrouter-multimodal",
+      "version": "5.0.1",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "OPENROUTER_API_KEY",
+          "description": "OpenRouter API key. Get one free at https://openrouter.ai/keys",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_MCP_NPM_VERSION",
+          "description": "Pin the underlying @stabgan/openrouter-mcp-multimodal npm release (uvx launcher only).",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_OUTPUT_DIR",
+          "description": "Sandbox root for save_path on generate_* tools. Defaults to the current working directory.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_INPUT_DIR",
+          "description": "Local read sandbox for analyze_* file paths. Falls back to OPENROUTER_OUTPUT_DIR, then cwd.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_ALLOW_UNSAFE_PATHS",
+          "description": "Set to 1 to disable input/output path sandboxes (legacy v2 behavior).",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_INLINE_MAX_BYTES",
+          "description": "Global inline media ceiling (bytes) for tool results when save_path is unset. Default 1048576 (1 MiB).",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_IMAGE_INLINE_MAX_BYTES",
+          "description": "Image inline ceiling (bytes). Falls back to OPENROUTER_INLINE_MAX_BYTES.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_AUDIO_INLINE_MAX_BYTES",
+          "description": "Audio inline ceiling (bytes). Falls back to OPENROUTER_INLINE_MAX_BYTES.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OPENROUTER_VIDEO_INLINE_MAX_BYTES",
+          "description": "Video inline ceiling (bytes). Default 10485760 (10 MiB).",
+          "isRequired": false,
+          "format": "string"
+        }
+      ]
+    }
+  ]
+}

@@ -1,14 +1,8 @@
-FROM node:18-alpine
-
+FROM node:22-alpine
 WORKDIR /app
-
-COPY package*.json .
-
-RUN npm install
-
+COPY package*.json ./
+RUN npm ci
 COPY . .
-
 RUN npm run build
-
-# Specifically for smithery. If you want to run WebMCP in a docker image,
-CMD ["npx", "./build/index.js", "--mcp"]
+ENV WEBMCP_CONFIG_DIR=/data
+CMD ["node", "build/index.js", "--mcp"]

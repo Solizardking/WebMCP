@@ -1,0 +1,53 @@
+{
+  "observedAt": "2026-09-13T14:04:56.025Z",
+  "browser": "152.0.7977.84",
+  "url": "http://127.0.0.1:4174",
+  "nativeTestingEnabled": true,
+  "native": {
+    "toolNames": [
+      "solana.get_network_status",
+      "solana.get_swap_quote",
+      "solana.get_token_market",
+      "solana.get_wallet_context",
+      "solana.inspect_transaction",
+      "solana.resolve_token",
+      "solana.stage_swap",
+      "solana_search_token"
+    ],
+    "resolvedMint": "So11111111111111111111111111111111111111112",
+    "network": {
+      "network": "mainnet-beta",
+      "slot": 446721269,
+      "version": "4.3.0-rc.0",
+      "source": "Solana JSON-RPC",
+      "observedAt": "2026-09-13T14:04:56.712Z"
+    },
+    "ticket": {
+      "id": "860b8ccb-574c-4368-bcbe-2992392c612a",
+      "ticketId": "860b8ccb-574c-4368-bcbe-2992392c612a",
+      "staged": true,
+      "requiresUserSignature": true,
+      "summary": "Swap prepared for human review; no transaction created",
+      "status": "awaiting-human-review",
+      "network": "mainnet-beta",
+      "inputMint": "So11111111111111111111111111111111111111112",
+      "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "amount": "0.1",
+      "slippageBps": 50,
+      "swapMode": "ExactIn",
+      "createdAt": "2026-09-13T14:04:56.713Z",
+      "signed": false,
+      "broadcast": false
+    },
+    "declarativeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "reviewVisible": true
+  },
+  "mobile": {
+    "width": 390,
+    "scrollWidth": 390,
+    "hasHorizontalOverflow": false
+  },
+  "legacyWidget": true,
+  "pageErrors": [],
+  "status": "passed"
+}

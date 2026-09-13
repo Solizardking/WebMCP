@@ -2011,10 +2011,8 @@ class WebMCP {
     }
 }
 
-// Export for module usage
-if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
-    module.exports = WebMCP;
-}
+// Classic script builds expose the constructor for upstream index.html.
+if (typeof window !== 'undefined') window.WebMCP = WebMCP;
 
 // ES module entry used by the Solana integration.
 export { WebMCP };

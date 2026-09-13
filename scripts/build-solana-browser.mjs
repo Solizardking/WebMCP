@@ -18,6 +18,12 @@ for(const [source,dest] of [['webmcp-main 2','spec'],['WebMCP-main 3','legacy-so
     manifest.push({source:`${source}/${rel}`,bundled:`${dest}/${rel}`,sha256:createHash('sha256').update(await readFile(path)).digest('hex')});
   }}await copy(base);
 }
-await cp(resolve(root,'docs/solana-browser.md'),resolve(out,'integration.md'));
+await cp(resolve(root,'docs'),resolve(out,'docs'),{recursive:true});
+const guide = (await readFile(resolve(root,'docs/solana-browser.md'),'utf8'))
+  .replaceAll('../webmcp-main%202/', '../spec/')
+  .replaceAll('../WebMCP-main%203/', '../legacy-source/');
+await writeFile(resolve(out,'docs/solana-browser.md'),guide);
+await writeFile(resolve(out,'integration.md'),guide.replaceAll('(references/', '(docs/references/').replaceAll('(../spec/', '(spec/').replaceAll('(../legacy-source/', '(legacy-source/'));
+
 await writeFile(resolve(out,'integration-manifest.json'),JSON.stringify({generatedAt:new Date().toISOString(),files:manifest},null,2)+'\n');
 console.log(`Built Solana Browser and preserved ${manifest.length} upstream files`);

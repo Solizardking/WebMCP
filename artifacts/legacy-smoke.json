@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "transport": "stdio MCP → authenticated WebSocket → page protocol",
+  "registration": true,
+  "tokenReplayRejected": true,
+  "toolListed": "localhost_4173-solana.read_context",
+  "toolExecuted": true,
+  "fixture": true,
+  "observedAt": "2026-09-13T14:00:22.456Z"
+}

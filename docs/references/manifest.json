@@ -1,0 +1,65 @@
+[
+  {
+    "file": "browser-run-session-management.md",
+    "title": "Session management (HTTP)",
+    "source": "https://developers.cloudflare.com/browser-run/cdp/session-management/",
+    "sha256": "f3d3fd94dbb0e5284d8c636ed7b939a87f2960a54e0a16b04c2202a8c6b508ce",
+    "provenance": "User-supplied document snapshot"
+  },
+  {
+    "file": "browser-run-mcp-clients.md",
+    "title": "MCP clients over CDP",
+    "source": "https://developers.cloudflare.com/browser-run/cdp/mcp-clients/",
+    "sha256": "424999439393689c2ab9d107dd3e2de5b207a9d55dada10204e4e47c54857960",
+    "provenance": "User-supplied document snapshot"
+  },
+  {
+    "file": "browser-run-playwright-cdp.md",
+    "title": "Playwright over CDP",
+    "source": "https://developers.cloudflare.com/browser-run/cdp/playwright/",
+    "sha256": "f473a9e00f814d4435b633f1b32608b20358f86b28355a4cf2afa3f615ad2ec1",
+    "provenance": "User-supplied document snapshot"
+  },
+  {
+    "file": "browser-run-playwright-mcp.md",
+    "title": "Playwright MCP",
+    "source": "https://developers.cloudflare.com/browser-run/playwright/playwright-mcp/",
+    "sha256": "d0552e1c2443429b23247eb82fa266733e89bad933ea1eb3904c7f2af475832b",
+    "provenance": "User-supplied document snapshot"
+  },
+  {
+    "file": "browser-run-puppeteer.md",
+    "title": "Puppeteer",
+    "source": "https://developers.cloudflare.com/browser-run/puppeteer/",
+    "sha256": "e3ce03384ca01ea2ac3487de330a74a062e73265aa5309f754059ae79c32fa1c",
+    "provenance": "User-supplied document snapshot"
+  },
+  {
+    "file": "browser-run-stagehand.md",
+    "title": "Stagehand",
+    "source": "https://developers.cloudflare.com/browser-run/stagehand/",
+    "sha256": "b99444146bb2e4b5e5d02457516868175329148bb4f663d0e4258d66dae22521",
+    "provenance": "User-supplied document snapshot"
+  },
+  {
+    "file": "browser-run-deploy-worker.md",
+    "title": "Deploy a Browser Run Worker",
+    "source": "https://developers.cloudflare.com/browser-run/how-to/deploy-worker/",
+    "sha256": "07ccb8cad12a9df53b64c027c291145b05e555451db6795295af2907e4ea02a9",
+    "provenance": "User-supplied document snapshot"
+  },
+  {
+    "file": "blink-intents.md",
+    "title": "Blink Intents \u2014 Sam Dutton",
+    "source": "https://developer.chrome.com/docs/web-platform/blink-intents",
+    "sha256": "faddd402b26a9e15fff9b3390779b6161be20dd84bf1df3455e8526ac6eecd06",
+    "provenance": "User-supplied document snapshot"
+  },
+  {
+    "file": "blink.md",
+    "title": "Blink rendering engine \u2014 Sam Dutton",
+    "source": "https://developer.chrome.com/docs/web-platform/blink",
+    "sha256": "fdf48ac434a528f2ca0653c450fcaa6d75eaa5c55f8af00f06ddc935890eb752",
+    "provenance": "User-supplied document snapshot"
+  }
+]

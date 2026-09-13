@@ -87,7 +87,9 @@ export class BrowserRun {
     if(action==='execute') {
       if(typeof input.name !== 'string' || !input.arguments || typeof input.arguments !== 'object' || Array.isArray(input.arguments))throw new Error('Tool name and arguments object required');
       const args=JSON.stringify(input.arguments), name=JSON.stringify(input.name);
-      const expression=`(async()=>{if(document.modelContext?.getTools){const t=(await document.modelContext.getTools()).find(t=>t.name===${name});if(!t)throw Error('Unknown tool');return document.modelContext.executeTool(t,${args});}if(navigator.modelContextTesting){return navigator.modelContextTesting.executeTool(${name},${JSON.stringify(args)});}throw Error('Native WebMCP unavailable');})()`;
+      // Chrome 152 accepts JSON strings here; the supplied draft accepts objects.
+      const documentArgs=this.env.BROWSER_DOCUMENT_INPUT_MODE==='object'?args:JSON.stringify(args);
+      const expression=`(async()=>{if(document.modelContext?.getTools){const t=(await document.modelContext.getTools()).find(t=>t.name===${name});if(!t)throw Error('Unknown tool');return document.modelContext.executeTool(t,${documentArgs});}if(navigator.modelContextTesting){return navigator.modelContextTesting.executeTool(${name},${JSON.stringify(args)});}throw Error('Native WebMCP unavailable');})()`;
       return {result:await this.evaluate(s,expression),discovery:await this.evaluate(s,discoverExpression)};
     }
     throw new Error('Unknown browser action');

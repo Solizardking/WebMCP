@@ -218,7 +218,7 @@ function connectToWebSocketServer(serverToken) {
         wsClient = null;
 
         // Try to reconnect after a delay
-        setTimeout(connectToWebSocketServer, 5000);
+        setTimeout(() => connectToWebSocketServer(serverToken), 5000);
     });
 
     // Handle connection errors

@@ -1,0 +1,43 @@
+{
+  "observedAt": "2026-09-13T14:04:10Z",
+  "url": "http://127.0.0.1:4174",
+  "provider": "Cloudflare Browser Run",
+  "auth": "existing Wrangler login; credential held in server memory",
+  "session": {
+    "destination": "https://solana.com/",
+    "nativeMode": "document",
+    "tools": [],
+    "liveViewAvailable": true,
+    "screenshotCaptured": true,
+    "closed": true
+  },
+  "quickActions": {
+    "links": "passed",
+    "crawl": {
+      "status": "completed",
+      "total": 3,
+      "finished": 3,
+      "records": [
+        {
+          "url": "https://solana.com/docs",
+          "status": "completed",
+          "hasMarkdown": true
+        },
+        {
+          "url": "https://solana.com/",
+          "status": "completed",
+          "hasMarkdown": true
+        },
+        {
+          "url": "https://solana.com/accelerate",
+          "status": "completed",
+          "hasMarkdown": true
+        }
+      ]
+    }
+  },
+  "transientFailures": [
+    "One CDP connection attempt failed; explicit manual retry succeeded."
+  ],
+  "status": "passed"
+}

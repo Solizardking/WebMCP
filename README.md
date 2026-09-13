@@ -1,3 +1,7 @@
+# CLAWD Solana WebMCP
+
+Run `npm run start:browser` to open the integrated Solana browser workspace at http://127.0.0.1:4173. It combines the shared Solana tools, both supplied WebMCP trees, and Cloudflare Browser Run. See the [integration guide](docs/solana-browser.md) for credentials, native API support, the legacy MCP bridge, complete source artifacts, and validation.
+
 # WebMCP upstream (optional local clone)
 
 This path is **not** a git submodule. The desk already vendors WebMCP sources

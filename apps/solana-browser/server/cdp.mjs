@@ -4,7 +4,7 @@ export class CDP extends EventEmitter {
   constructor(url, headers = {}) {
     super(); this.pending = new Map(); this.id = 0;
     this.socket = new WebSocket(url, {headers,handshakeTimeout:15000,maxPayload:16*1024*1024});
-    this.ready = new Promise((resolve,reject) => { this.socket.once('open',resolve); this.socket.once('error',() => reject(new Error('Browser CDP connection failed'))); });
+    this.ready = new Promise((resolve,reject) => { this.socket.once('open',resolve); this.socket.once('error',error => reject(new Error(/^Unexpected server response: [0-9]+$/.test(error.message) ? `Cloudflare CDP: ${error.message}` : `Browser CDP connection failed${error.code ? ` (${error.code})` : ''}`))); });
     this.socket.on('message', raw => {
       let data; try {data = JSON.parse(raw);} catch {return;}
       const p = this.pending.get(data.id);
@@ -27,7 +27,8 @@ export class CDP extends EventEmitter {
   close() {this.socket.close();}
 }
 export const discoverExpression = `(async () => {
-  if (document.modelContext?.getTools) return {mode:'document',tools:await document.modelContext.getTools()};
-  if (navigator.modelContextTesting?.listTools) return {mode:'navigator',tools:await navigator.modelContextTesting.listTools()};
+  const metadata = tools => tools.map(({name,title,description,inputSchema,annotations,origin}) => ({name,title,description,inputSchema,annotations,origin}));
+  if (document.modelContext?.getTools) return {mode:'document',tools:metadata(await document.modelContext.getTools())};
+  if (navigator.modelContextTesting?.listTools) return {mode:'navigator',tools:metadata(await navigator.modelContextTesting.listTools())};
   return {mode:'unavailable',tools:[]};
 })()`;

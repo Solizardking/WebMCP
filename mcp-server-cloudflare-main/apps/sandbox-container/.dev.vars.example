@@ -1,0 +1,7 @@
+# Run pnpm local:setup to generate a private local bearer token.
+LOCAL_SANDBOX_TOKEN=
+# Optional hosted OAuth development only; unused by wrangler.local.jsonc.
+CLOUDFLARE_CLIENT_ID=
+CLOUDFLARE_CLIENT_SECRET=
+DEV_DISABLE_OAUTH=
+DEV_CLOUDFLARE_API_TOKEN=

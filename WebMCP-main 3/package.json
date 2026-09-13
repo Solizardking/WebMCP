@@ -23,22 +23,19 @@
   "license": "MIT",
   "type": "module",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.6.1",
-    "child_process": "^1.0.2",
-    "crypto": "^1.0.1",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "dotenv": "^16.4.1",
     "env-paths": "^3.0.0",
-    "http": "^0.0.1-security",
-    "os": "^0.1.2",
-    "path": "^0.12.7",
-    "url": "^0.11.4",
-    "ws": "^8.18.1"
+    "ws": "^8.21.3"
   },
   "devDependencies": {
-    "esbuild": "^0.25.0"
+    "esbuild": "^0.25.12"
   },
   "files": [
     "build/",
     "src/"
-  ]
+  ],
+  "engines": {
+    "node": ">=22"
+  }
 }

@@ -1,0 +1,50 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "sandbox-container-local",
+	"main": "server/sandbox.local.app.ts",
+	"compatibility_date": "2025-04-03",
+	"compatibility_flags": ["nodejs_compat"],
+	"dev": {
+		"ip": "127.0.0.1",
+		"port": 8976
+	},
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "CONTAINER_MANAGER",
+				"class_name": "ContainerManager"
+			},
+			{
+				"name": "USER_CONTAINER",
+				"class_name": "UserContainer"
+			}
+		]
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_sqlite_classes": ["ContainerManager", "UserContainer"]
+		}
+	],
+	"kv_namespaces": [
+		{
+			"binding": "OAUTH_KV",
+			"id": "local-oauth"
+		},
+		{
+			"binding": "USER_BLOCKLIST",
+			"id": "local-blocklist"
+		}
+	],
+	"analytics_engine_datasets": [
+		{
+			"binding": "MCP_METRICS",
+			"dataset": "sandbox-local"
+		}
+	],
+	"vars": {
+		"ENVIRONMENT": "dev",
+		"MCP_SERVER_NAME": "Local Docker Sandbox",
+		"MCP_SERVER_VERSION": "0.2.19"
+	}
+}

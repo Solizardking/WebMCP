@@ -319,10 +319,11 @@ mcp.registerResource(
 </div>
 
 <!-- Load WebMCP script -->
-<script src="src/webmcp.js"></script>
+
 
 <!-- Demo script -->
-<script>
+<script type="module">
+    import { WebMCP } from "./src/webmcp.js";
     // Get reference to WebMCP instance (automatically created)
     window.webMCP = new WebMCP();
     const mcp = window.webMCP;

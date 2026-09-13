@@ -1,11 +1,13 @@
-version: '3'
-
 services:
   webmcp:
-    image: node:18-alpine
-    working_dir: /app
-    volumes:
-      - ./:/app
+    build: .
     ports:
-      - "4797:4797"
-    command: npx -y @jason.today/webmcp@latest --port 4797
+      - "127.0.0.1:4797:4797"
+    environment:
+      WEBMCP_BIND_HOST: 0.0.0.0
+      WEBMCP_CONFIG_DIR: /data
+    volumes:
+      - webmcp-state:/data
+    command: ["node", "build/index.js", "--foreground", "--port", "4797"]
+volumes:
+  webmcp-state:

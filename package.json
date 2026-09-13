@@ -28,16 +28,21 @@
     "browser:run": "node scripts/solana-browser-run.mjs",
     "build:legacy": "npm --prefix \"WebMCP-main 3\" run build",
     "start:legacy": "node \"WebMCP-main 3/src/websocket-server.js\" --foreground",
-    "authorize:legacy": "node \"WebMCP-main 3/src/websocket-server.js\" --new"
+    "authorize:legacy": "node \"WebMCP-main 3/src/websocket-server.js\" --new",
+    "start:browser:wrangler": "npm run build:browser && node scripts/start-solana-browser.mjs --wrangler",
+    "smoke:legacy": "npm run build:legacy && node scripts/smoke-legacy.mjs",
+    "smoke:browser": "node scripts/smoke-solana-browser.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "^2.0.0",
-    "zod": "^4.0.0",
-    "ws": "^8.18.1"
+    "ws": "^8.18.1",
+    "zod": "^4.0.0"
   },
   "devDependencies": {
+    "@cloudflare/puppeteer": "^1.4.0",
+    "esbuild": "^0.25.0",
     "typescript": "^5.9.0",
-    "esbuild": "^0.25.0"
+    "playwright": "^1.62.1"
   },
   "engines": {
     "node": ">=20"

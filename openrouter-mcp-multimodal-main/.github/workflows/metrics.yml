@@ -1,0 +1,70 @@
+name: Harvest metrics
+
+# Daily snapshot to orphan `metrics` branch (npm, Docker Hub, GitHub traffic).
+# GitHub traffic endpoints need METRICS_TOKEN (PAT with administration:read);
+# default GITHUB_TOKEN lacks that scope and those fields stay null.
+
+on:
+  schedule:
+    # 03:17 UTC — off the top-of-hour herd and npm's 00:00 UTC counter reset.
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  harvest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          path: main
+
+      - name: Checkout or init metrics branch
+        run: |
+          git clone --branch metrics "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" metrics 2>/dev/null || {
+            git clone "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" metrics
+            cd metrics
+            git checkout --orphan metrics
+            git rm -rf . 2>/dev/null || true
+            mkdir -p metrics/snapshots
+            cat > README.md <<'EOF'
+          # Metrics time series
+
+          Machine-written by `.github/workflows/metrics.yml`. Do not edit by hand.
+
+          - `metrics/snapshots/YYYY-MM-DD.json` — full snapshot
+          - `metrics/history.csv` — append-only rolling CSV
+
+          Traffic fields require the `METRICS_TOKEN` repo secret (fine-grained PAT
+          with Repository → Administration: Read). Default `GITHUB_TOKEN` cannot
+          call GitHub `/traffic/*` APIs.
+          EOF
+            git add README.md
+            git -c user.name=github-actions -c user.email=actions@github.com \
+              commit -m "init metrics branch"
+            git push origin metrics
+          }
+
+      - name: Run harvester
+        env:
+          GH_TOKEN: ${{ secrets.METRICS_TOKEN || secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          cd metrics
+          node ../main/scripts/harvest-metrics.mjs
+
+      - name: Commit snapshot
+        run: |
+          cd metrics
+          git config user.name github-actions
+          git config user.email actions@github.com
+          git add metrics/
+          if git diff --cached --quiet; then
+            echo "No new data to commit"
+            exit 0
+          fi
+          git commit -m "metrics: snapshot $(date -u +%Y-%m-%d)"
+          git push origin metrics

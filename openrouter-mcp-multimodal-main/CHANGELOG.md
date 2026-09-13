@@ -1,0 +1,430 @@
+# Changelog
+
+All notable changes to `@stabgan/openrouter-mcp-multimodal` are recorded here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [5.0.1] — 2026-09-05
+
+Patch release: dependency security updates and refreshed security policy documentation.
+
+### Security
+
+- **npm transitive dependency updates** — `fast-uri` 3.1.5 → 3.1.7 (high: SSRF/host-confusion in URI parsing, via `@modelcontextprotocol/sdk` → `ajv`), `qs` 6.15.3 → 6.16.0 (moderate: DoS / array-limit bypass, via MCP SDK → `express`), `@humanfs/node` 0.16.7 → 0.16.8 (moderate: dev-only ESLint dependency). Outbound tool HTTP fetches use custom IP-pinned fetch logic, not `fast-uri`; the server uses stdio transport only (Express is not started). Updates reduce supply-chain exposure in published npm/Docker artifacts.
+- **`SECURITY.md` refreshed** — Documents 5.0.x support, DNS rebinding mitigation (4.8.0), and credential redaction controls.
+
+## [5.0.0] — 2026-09-02
+
+Major release: retired default models replaced, minimum Node.js raised to 22, OpenAI SDK v7, modernized CI/CD and supply chain, and toolchain updates across Docker, GitHub Actions, and dev dependencies.
+
+### Fixed
+
+- **Default chat and vision model was retired upstream** — `nvidia/nemotron-nano-12b-v2-vl:free` no longer exists on OpenRouter and returned `404 No endpoints found`, so `chat_completion`, `start_chat_completion`, and `analyze_image` failed for anyone who did not set `OPENROUTER_DEFAULT_MODEL`. The default is now **`google/gemma-4-26b-a4b-it:free`**, verified live for both text and image input.
+- **Default reranker model was retired upstream** — `cohere/rerank-english-v3.0` returned `400 Model does not exist`, breaking `rerank_documents` by default. Now **`cohere/rerank-v3.5`**.
+- **Default dedicated TTS model was retired upstream** — `openai/gpt-4o-mini-tts-2025-12-15` and the documented alternatives were no longer accepted by `POST /audio/speech`. The default is now the live-verified free model **`deepgram/flux-tts:free`** with voice **`flux-alexis-en`**.
+- **Dedicated TTS request defaults were inconsistent with the API** — `mp3` is now sent explicitly when omitted, the default voice is only sent with the default model, and `response_format` accepts the endpoint's documented `mp3` and `pcm` values.
+- **Retired models in test and e2e fixtures** — the free-model helpers referenced `nvidia/nemotron-nano-12b-v2-vl:free` and `meta-llama/llama-3.2-3b-instruct:free`, both since removed from OpenRouter. Replaced with live-verified free models.
+- **`version:check` now covers `python/README.md` and `llms.txt`** — only `README.md` pins were validated before, so `llms.txt` silently kept `4.7.0` install pins through the 4.8.0 release. Docker Hub tags are now checked alongside GHCR tags.
+- **`npm run test:smoke:uvx:local` never tested the local build** — the script packed a tarball but did not set `MCP_UVX_LOCAL=1`, so it silently validated the last *published* release instead. It now runs against the local package, and refuses to fall back to a stale tarball.
+
+### BREAKING
+
+- **Minimum Node.js is now 22** — Node 20 reached end of life on 2026-04-30. Install Node 22 LTS or newer before upgrading. On Node 20, `npm install` emits an engine warning and the runtime is unsupported; behavior may break without notice.
+- **`openai` SDK upgraded from v4 to v7** — v7 itself requires Node ≥ 22. This is an internal dependency change only; the MCP tool names, JSON schemas, and result shapes are unchanged.
+
+### Changed
+
+- **MCP protocol version in `health_check`** — Now reports **`2025-11-25`**, derived from `@modelcontextprotocol/sdk`'s `LATEST_PROTOCOL_VERSION` instead of a hardcoded string, so it cannot drift from the SDK. The actual handshake was always negotiated by the SDK; no client behavior changes.
+- **`@modelcontextprotocol/sdk` 1.29.0 → 1.30.0.**
+- **Docker base image** — Moved from `node:22-alpine` to `node:24-alpine` (Active LTS) and is now **pinned by digest** for reproducible builds.
+- **`@types/node` pinned to the 22.x line** — Type-checking matches the supported Node floor and cannot green-light APIs missing on Node 22.
+- **Dev toolchain** — ESLint 9 → 10, plus `sharp`, `prettier`, `vitest`, and `typescript-eslint` updates.
+
+### CI/CD and supply chain
+
+- **GitHub Actions bumped to current majors** — Removes the deprecated Node 20 action runtime.
+- **PyPI Trusted Publishing (OIDC)** — Replaces a long-lived API token so build attestations are honored.
+- **CI test matrix** — Node **22 and 24**.
+- **Docker smoke on every pull request** — Image is built and MCP-handshake smoke-tested on PRs, not only on tagged releases.
+- **Dependabot** — Enabled for GitHub Actions, npm, and Docker base-image digests.
+- **`.dockerignore` tightened** — Local `.env` files and `*.tgz` artifacts cannot enter the build context.
+
+**Upgrade notes:** Upgrade the host to **Node 22+** before installing `@stabgan/openrouter-mcp-multimodal@5.0.0`. No MCP client or tool-call changes are required. If you publish PyPI from CI, register the trusted publisher on PyPI **before** pushing tag `v5.0.0` (see [`docs/RELEASING.md`](docs/RELEASING.md)).
+
+## [4.8.0] — 2026-09-02
+
+Minor release: security hardening across outbound fetches and path sandbox, correctness fixes for audio/STT/caching/model lookup, and expanded validation and observability.
+
+### Security
+
+- **DNS-rebinding SSRF closed** — Outbound media fetches pin the socket to a pre-validated IP via `node:http`/`node:https` with a custom `lookup`, re-validating and re-pinning on every redirect hop; TLS SNI and certificate validation unchanged.
+- **Symlinked intermediate directory escape** — `resolveSafeInputPath` now resolves ancestor realpaths so a symlinked parent directory cannot bypass the input sandbox.
+- **Obfuscated IPv4 literals blocked** — Octal, decimal, and shorthand forms (e.g. `0177.0.0.1`, `2130706433`, `127.1`) are rejected before fetch.
+- **Path hardening** — Null bytes rejected in caller-supplied paths; path prefix comparison is case-insensitive on Windows.
+- **Credential redaction** — API keys are redacted from error messages, `health_check` output, and logs; the logger also guards against circular-reference crashes.
+- **Response body draining** — Redirect and error paths now drain response bodies, fixing a socket leak under load.
+- **Publish workflow hardened** — `publish.yml` jobs run only on version tags, the tag is verified against `package.json`, and an in-flight release can no longer be cancelled.
+
+### Fixed
+
+- **`analyze_audio` local file size limit** — Local sandbox files bypassed `OPENROUTER_AUDIO_MAX_DOWNLOAD_BYTES` while HTTP, data-URL, and `speech_to_text` paths enforced it; local inputs now stat-check before read and reject oversize files with `RESOURCE_TOO_LARGE`.
+- **`generate_audio` corrupt multi-chunk output** — Independently padded base64 chunks were concatenated before a single decode; each chunk is now decoded before concatenation (affected most non-trivial audio).
+- **`speech_to_text` text/srt/vtt failures** — Responses in `text`, `srt`, or `vtt` format were always parsed as JSON; plain-text formats are now handled correctly.
+- **`cache_ttl` duration strings ignored** — Values like `"5m"` and `"1h"` (the examples in the tool schema) were forwarded verbatim and never honored upstream; they are now normalized to integer seconds so response caching works when following the docs.
+- **`get_model_info` / `validate_model` routing suffixes** — Valid model ids with `:nitro`, `:floor`, `:free`, `:online`, or `:exacto` suffixes returned `MODEL_NOT_FOUND`; lookup is now suffix-aware and case-insensitive.
+- **`search_models` unstable pagination** — Pages could skip or repeat models because pagination used insertion order; results are now stably sorted.
+- **Auth and upstream error mapping** — Invalid or missing API keys returned `INVALID_INPUT` instead of `INVALID_CREDENTIALS`; upstream 404s map to `MODEL_NOT_FOUND`, HTTP-date `Retry-After` is honored, and a 200 response carrying an embedded error is no longer treated as success.
+- **Cancelled video jobs** — Cancelled jobs polled until timeout and reported as still running; they are now terminal. A throwing progress hook no longer aborts the poll loop.
+- **Empty upstream payloads** — Zero-byte and empty upstream payloads were reported as successful saves; file writes are now atomic (temp file plus rename) so a failure cannot leave a truncated file.
+- **`text_to_speech` wrong file extension** — The saved extension came from the requested format rather than actual bytes (e.g. `.mp3` containing WAV); the extension now comes from magic-byte detection and `_meta.save_path` reflects the final path.
+- **Async chat job ID collisions** — Job IDs used a restart-resettable counter and could overwrite a previous run's persisted job directory; they now include random entropy. Completed jobs are evicted from memory instead of accumulating forever.
+- **Unhandled rejections and shutdown** — Background completions and failed progress notifications no longer cause unhandled promise rejections; `SIGTERM` shuts down cleanly (Docker/Kubernetes); a throwing handler returns a tool error instead of a JSON-RPC internal error.
+- **`OPENROUTER_INLINE_MAX_BYTES` floor** — Explicit values below 4096 were silently ignored; explicit values are now respected and `0` means never inline.
+- **Tool-router type safety** — Removed an unsound cast at the tool-router boundary that masked a real type error; `tsc` now genuinely validates that path.
+- **Compressed responses** — `gzip`, `deflate`, and `br` responses are now decompressed; the size cap applies to decompressed bytes.
+- **Input validation gaps** — Closed gaps for `rerank_documents` out-of-range indices and non-positive `top_n`, `text_to_speech` `speed` outside 0.25–4.0, `generate_image_dedicated` `n` above 10 and unvalidated `aspect_ratio`, and empty or null chat message content.
+- **`analyze_image` / `analyze_video` cache validation order** — Invalid `cache_ttl` was validated after reading and decoding local media; validation now runs before expensive I/O, matching `analyze_audio`.
+- **`chat_completion` / `start_chat_completion` invalid `max_tokens`** — Present-but-invalid values (zero, negative, or non-finite) were silently replaced by the `OPENROUTER_MAX_TOKENS` default; they now return `INVALID_INPUT` while omitted `max_tokens` still falls back to the env default.
+- **Stale metadata** — `llms.txt` listed only 14 of 19 tools; `smithery.yaml` and the Python `__version__` had been stuck at 4.5.3; `python/README.md` pinned 4.5.3.
+
+### Added
+
+- **`INVALID_CREDENTIALS` error code** — Additive; clients switching on `_meta.code` should handle it alongside existing codes.
+- **New env vars** — `OPENROUTER_PROVIDER_ONLY`, `OPENROUTER_MAX_RESULT_TEXT_CHARS` (default 512000, `0` disables), and `OPENROUTER_ASYNC_JOBS_MEMORY_MAX` (default 200, `0` unlimited).
+- **Provider routing `only` field** — Restrict requests to an allowlist of provider slugs.
+- **`SECURITY.md`** — Security policy plus README troubleshooting, per-client config paths, and documentation of the binary-result policy.
+- **CI and version tooling** — CI tests Node 20 and 22; `server.json` declares path-sandbox and inline-byte settings; `version:check` covers the lockfile, release-please manifest, `smithery.yaml`, Python `__version__`, the CHANGELOG heading, and README pins.
+
+### Changed
+
+- **`cache_ttl` accepts duration strings** — `"30s"`, `"5m"`, `"1h"`, or integer seconds, validated to 1–86400.
+- **Result text cap** — Completion and rerank result text is capped by default; raise or disable via `OPENROUTER_MAX_RESULT_TEXT_CHARS`.
+- **Canonical enums from schemas** — Handlers import enums from `tool-definitions.ts` so advertised schemas and runtime validation cannot drift.
+
+**Upgrade notes:** Invalid or missing API keys now return **`INVALID_CREDENTIALS`** instead of **`INVALID_INPUT`** — update any client logic that keyed off the old code. Chat and rerank result text is **capped at 512000 characters by default**; set `OPENROUTER_MAX_RESULT_TEXT_CHARS=0` to disable or raise the limit. **`cache_ttl`** now rejects genuinely invalid values while **duration strings like `"5m"` and `"1h"` work as documented**.
+
+## [4.7.0] — 2026-09-02
+
+Minor release: canonical MCP binary result policy, security hardening, and contract documentation.
+
+### Added
+
+- **`src/tool-handlers/tool-result-payload.ts`** — Shared `buildBinaryToolResult()` policy for image/audio/video artifacts.
+- **`src/tool-handlers/path-utils.ts`** — Shared `replaceExtension()` for output paths.
+- **`src/openrouter-openai-client.ts`** — Factory for OpenRouter-attributed OpenAI SDK clients.
+- **`resolveSafeJobStatusPath()`** in `path-safety.ts` — realpath guard for async chat job disk reads.
+- Tests for save_path text-only results, job_id sandbox, URL+save_path download, TTS extension fix, and MCP video resource blocks.
+
+### Fixed
+
+- **`save_path` duplicate inline media** — When `save_path` is set, tool results are text-only with `_meta.save_path` (no duplicate base64 blocks). Affects `generate_image`, `generate_image_dedicated`, `generate_audio`, `text_to_speech`, and `generate_video`.
+- **`async-chat` job_id path traversal** — Reject malicious `job_id` values before disk reads; symlink escape blocked via realpath.
+- **`generate_image_dedicated` URL + save_path** — Download provider URL when API returns URL only (or empty `b64_json`) and persist to `save_path`.
+- **`text_to_speech` extension mismatch** — `speech.wav` + `response_format: mp3` now writes `speech.mp3`, not `speech.wav.mp3`.
+- **OpenRouter attribution headers** on the OpenAI SDK client (`HTTP-Referer`, `X-Title`).
+
+### Changed
+
+- **Inline byte ceilings** — Image/audio default to 1 MiB (`OPENROUTER_INLINE_MAX_BYTES` / per-kind env vars); video remains 10 MiB default. Documented in `.env.example` and tool JSON schemas.
+- **Inline video MCP shape** — Video payloads use spec-valid `resource` blocks (blob + mimeType) instead of non-standard `type: video`.
+- **Tool schema `save_path` descriptions** — Document text-only result policy and inline size limits.
+- **GitHub Releases** — Tag pushes create Release pages with notes extracted from this changelog (`scripts/changelog-section.mjs`).
+
+## [4.6.2] — 2026-08-23
+
+Patch release shipping the v4.6.1 refactor work: shared chat/image/path helpers, extracted tool schemas, expanded test suite, and release automation.
+
+### Changed
+
+- **`src/tool-definitions.ts`** — Tool JSON schemas extracted from the handler router (980 → 246 lines in `tool-handlers.ts`).
+- **`src/tool-handlers/chat-request.ts`** — Shared `ChatToolRequest`, `buildChatCompletionBody()`, and OpenAI body mapping for chat tools.
+- **`src/tool-handlers/image-source.ts`** — Thin media input layer over `image-utils.fetchImageWithMime()`.
+- **`src/tool-handlers/path-safety.ts`** — `resolveOptionalOutputPath()` and `isToolErrorResult()` shared across generate/analyze handlers.
+- **`src/tool-handlers/async-chat.ts`** — Disk persistence via `loadJobFromDisk` / `resolveJob`; upstream errors via `classifyUpstreamError`.
+- **Deslop pass** — Removed essay/step comments and Unicode dividers across handlers without changing behavior.
+- **773 automated tests** (was 682): new coverage for chat-request, async-chat, image-source, chat-completion handler, save-path handlers, and video frame sandbox.
+- **Smoke scripts** — Expect 19 tools; npm smoke installs the tarball before spawning the bin.
+- **Release CI** — [Release Please](https://github.com/googleapis/release-please) opens version-bump PRs from conventional commits; tag pushes publish npm, PyPI, and Docker together.
+
+## [4.5.3] — 2026-07-02
+
+Distribution release: PyPI `uvx` launcher, full install matrix in README, and CI publish for npm + PyPI + Docker.
+
+### Added
+
+- **PyPI package** `mcp-server-openrouter-multimodal` — `uvx` / `pipx` launcher that execs the npm server (Node 20+ still required).
+- **CI `publish-pypi` job** — builds `python/` and publishes to PyPI on version tags (trusted publisher or `PYPI_API_TOKEN` secret).
+- **`scripts/smoke-uvx-mcp.mjs`** — stdio smoke for the Python launcher (`npm run test:smoke:uvx` / `test:smoke:uvx:git`).
+- **MCP Registry PyPI entry** in `server.json` with `mcp-name` ownership marker in `python/README.md`.
+- README install table covering npx, uvx, npm global, Docker, GHCR, Smithery, MCP Registry, Claude Code CLI, Inspector, and Windows `cmd /c npx`.
+
+### Changed
+
+- Dedicated **`ci.yml`** workflow for test badge (separate from release publish failures).
+- Release workflow npm publish falls back without provenance when Sigstore is unavailable.
+- **uvx launcher** runs `npx` with `cwd=/tmp` and supports `OPENROUTER_MCP_NPM_SPEC` for local `npm pack` tarballs.
+
+## [4.5.2] — 2026-07-02
+
+Security patch closing GHSA-3q7p-736f-x44v (path traversal on analyze\_\* local file inputs), plus tool-description overhaul, performance optimizations, and a major test-suite expansion. Fully backwards compatible with v4.5.1.
+
+### Fixed
+
+- **HIGH — `analyze_image`, `analyze_audio`, `analyze_video` read local paths without sandbox.** Unlike `generate_video` (fixed in v4.0.1), the analyze tools used raw `fs.readFile` / `readFileSync` on caller-supplied paths, allowing exfiltration of arbitrary host files (e.g. `/etc/passwd`, `~/.ssh/id_rsa`) into the OpenRouter request body. All three now route through `resolveSafeInputPath` from `path-safety.ts`; violations return `UNSAFE_PATH`. Regression tests in `src/__tests__/analyze-media-sandbox.test.ts`.
+
+### Added
+
+- **`src/tool-descriptions.ts`** — Structured tool docs with Use when / Do NOT / Good & Bad examples / Fails when / Works with sections, wired into every handler.
+- **652 unit + mock tests** (was ~286): strata coverage under `src/__tests__/mock/` for handlers, model cache, security, structured routing, path sandbox.
+- **Regression suite** — `vitest.regression.config.ts` + `src/__tests__/regression/regression.test.ts`.
+- **Mandatory integration tests** — `src/__tests__/integration.setup.ts` loads `.env`; CI always runs integration with `OPENROUTER_API_KEY`. Default free model: `google/gemma-4-26b-a4b-it:free`.
+- **`npm run ci`** — lint + format + build + unit + regression + integration in one command.
+
+### Changed
+
+- **`ModelCache.searchPaginated()`** — Single-pass paginated search; `search_models` uses it.
+- **`generate_video`** — Parallel `attachFrameImages` for frame/reference uploads.
+- **`image-utils`** — Single sharp pipeline for resize/encode.
+- **Docker base image** — `node:22-alpine` (was 20).
+- **Dependencies** — `@modelcontextprotocol/sdk` 1.29, `openai` 4.104, `sharp` 0.35, TypeScript 5.9, and other patch/minor bumps.
+- **README** — SEO-focused rewrite with corrected examples and testing table.
+- **Smoke scripts** — `smoke-docker-mcp.mjs` / `smoke-npm-mcp.mjs` read version + tool count from `package.json` (14 tools).
+
+### Security advisory
+
+- [GHSA-3q7p-736f-x44v](https://github.com/stabgan/openrouter-mcp-multimodal/security/advisories) — patched in **4.5.2**.
+
+## [4.5.1] — 2026-05-04
+
+Patch release fixing two HIGH-severity issues caught by a post-release bug-hunter audit, plus four MEDIUM documentation / correctness fixes. Fully backwards compatible with v4.5.0.
+
+### Fixed
+
+- **HIGH — MCP `initialize` handshake advertised stale version.** `src/index.ts` hardcoded `"4.0.1"` in the `Server` constructor, so every MCP client saw that string on connect regardless of our real version. Now imports `SERVER_VERSION` from `src/version.ts` (single source of truth).
+- **HIGH — `notifications/progress` could violate the monotonic-increase requirement.** When OpenRouter alternated numeric `progress: 75` with ticks that omitted the field, our fallback to `attempt` produced small integers (2, 3, …), so clients saw `75 → 2 → 3` — a decrease. MCP 2025-06-18 utilities/progress forbids this. Fix: closure-local `lastSent` counter, always emit `max(lastSent + 1, candidate)`. Regression test in `src/__tests__/progress-monotonic.test.ts`.
+- **MEDIUM — `classifyUpstreamError` silently dropped its `contextMessage` parameter.** The argument was prefixed with `_` but 12 call sites relied on it for triage. Now prefixed into the returned message. Covered by `src/__tests__/error-classification.test.ts`.
+- **MEDIUM — `suggestions` and `retry_after_seconds` were declared but never populated.** The v4.5.0 CHANGELOG advertised structured error metadata, but no handler wired it up. `classifyUpstreamError` now reads `Retry-After` headers on 429/5xx and attaches canonical suggestions for credits / rate-limit / content-policy / model-not-found / timeouts / 5xx.
+- **MEDIUM — `health_check` returned `ok: false` on a successful-but-empty catalog and caused a hot-loop.** `ModelCache.isValid()` tested `Object.keys(models).length > 0`, so a successful `/models` → `[]` response was treated as "not populated", re-fetching on every request. Split the timestamp into `fetchedAt` (legacy) + `populatedAt` (new) and use the latter for freshness. `health_check.ok` now tracks API reachability, not catalog size. Regression tests for both behaviors.
+- **MEDIUM — `generate_video` / `get_video_status` timeout contract mismatch.** Tool descriptions said "Fails when: JOB_STILL_RUNNING" but the implementation returns `isError: false` with a resume hint. Descriptions corrected to say "Returns successfully with `_meta.code: JOB_STILL_RUNNING` (NOT an error)".
+- **INFO — Fatal-error logging now whitelists fields.** Top-level `uncaughtException` / `unhandledRejection` / `server.onerror` handlers previously `console.error`'d the raw error object. If a future openai-node release changes `APIError.toString()` to include `Authorization`, we'd silently log Bearer tokens to stderr. Defense-in-depth: extract `name` / `message` / trimmed `stack` explicitly via `logger.error('fatal', …)`.
+
+### Added
+
+- `ModelCache.reset()` — test-friendly full invalidation (clears models + timestamps + inflight slot).
+- 2 new regression test files: `progress-monotonic.test.ts`, `error-classification.test.ts`. Test count 276 → 286.
+
+### Audit artifact
+
+Full report: 12 findings (0 CRITICAL, 2 HIGH, 4 MEDIUM, 4 LOW, 2 INFO). No credential leaks in source, history, or runtime paths. `.env` gitignored since v2; never committed. Dockerfile runs as unprivileged `app` user with `--chown` on COPYs. SSRF blocklist intact. Path sandbox intact.
+
+## [4.5.0] — 2026-05-04
+
+Major feature release adding 18 enhancements across OpenRouter platform parity, MCP 2025-06-18 spec compliance, and research-driven improvements. Fully backwards compatible.
+
+### Added — OpenRouter platform parity
+
+- **Response caching via `X-OpenRouter-Cache`.** New `cache`, `cache_ttl`, `cache_clear` params on `chat_completion` + analyze\_\* tools. Zero tokens billed on cache hits, 80-300ms latency vs seconds. Server-wide default via `OPENROUTER_CACHE_RESPONSES=1`. `_meta.cache = {status, age, ttl}` surfaced from response headers.
+- **Reasoning tokens passthrough.** New `include_reasoning` param on `chat_completion`; when set, upstream reasoning trace surfaces on `_meta.reasoning`. Supports DeepSeek R1, Gemini Thinking, Opus 4.7. Server-wide default via `OPENROUTER_INCLUDE_REASONING=1`.
+- **Native finish reason.** `_meta.native_finish_reason` alongside normalized `_meta.finish_reason` on every text-returning tool.
+- **`:exacto` suffix documented.** `chat_completion` description + field docstring list `:nitro`, `:floor`, `:exacto` (Auto Exacto reduces tool-call errors ~80% on top tool-calling models).
+- **Web search plugin.** New `online: boolean` + `web_max_results: number` on `chat_completion` — injects OpenRouter's Exa-backed plugin (`$4 / 1000 results`).
+- **`cache_control` breakpoints on analyze\_\* tools.** New `cache_input: boolean` on `analyze_image`, `analyze_audio`, `analyze_video`. Attaches `cache_control: {type: 'ephemeral'}` to the media block so Anthropic Claude / Gemini 2.5+ prompt-cache it — 10x savings on repeat analysis (Anthropic), 4x (Gemini).
+- **`rerank_documents` tool.** New tool backed by OpenRouter's `/rerank` endpoint. Cohere + Fireworks rerankers. Inputs: `query`, `documents[]`, optional `model` (default `cohere/rerank-english-v3.0`), `top_n`, `return_documents`.
+
+### Added — MCP 2025-06-18 spec compliance
+
+- **Structured outputs + `outputSchema`.** `validate_model`, `get_model_info`, `search_models`, `rerank_documents`, `health_check` now emit `structuredContent` with typed JSON + declared `outputSchema`, per MCP §5.2.6-7. Agents can validate responses structurally.
+- **Progress notifications.** `generate_video` now emits `notifications/progress` on every poll tick when the client passes a `progressToken` in request `_meta`. Per MCP basic/utilities/progress spec. Agents can show "processing 45%" to users.
+- **`title` + `openWorldHint: true` on every tool.** Human-readable display names for clients that surface them; open-world hint reflects that every one of our tools hits external APIs.
+
+### Added — research-driven improvements
+
+- **Failure-mode + inter-tool documentation on every tool.** Per arxiv 2602.18764 (Schema-Guided Dialogue / MCP convergence), every tool description now includes explicit "Fails when:" (ErrorCode triggers) and "Works with:" (related tools in a workflow) sections. Research predicts ~10-15% improvement in tool-selection accuracy.
+- **`generate_video_from_image`.** New narrower tool wrapping `generate_video` for image-to-video workflows. Per arxiv 2511.03497: fewer parameters = higher tool-call hit rate.
+- **`content_is_untrusted: true` hint on analyze\_\* output.** Inspired by ClawGuard (arxiv 2604.11790) and tool-result-parsing defenses (2601.04795). Flags model output derived from potentially attacker-controlled media so downstream agents can treat it as data, not instructions.
+- **Audit logging for paid operations.** New `logger.audit()` method that bypasses the log-level filter. Emitted from `generate_video`, `generate_audio`, `generate_image` with model, 80-char prompt preview (PII boundary), and cost-shape hints. Enables unintended-spend tracing via `docker logs`.
+- **Structured error metadata.** `toolError()` accepts optional `suggestions: string[]` and `retry_after_seconds: number`. Agents get concrete next-step options instead of raw strings to interpret. Inspired by Apigene's production MCP best-practice guide.
+- **`health_check` tool.** Verifies API-key validity, OpenRouter reachability, and returns server + protocol versions. `{ ok, server_version, protocol_version, api_key_valid, models_cached }`.
+- **`search_models` pagination.** New `offset` + `next_offset` + `has_more` + `total` fields in the result. Safely walk large result sets.
+- **`_meta.server_version` stamp.** Every successful tool response carries `server_version: "4.5.0"` for debuggability.
+
+### Changed
+
+- Rewrote every tool description (11 existing + 2 new) with explicit "Fails when:" and "Works with:" sections.
+- `ModelCache.search()` gains an `all: true` escape hatch for pagination (returns the full filtered set, no limit applied).
+- `completion-utils.ts`'s `ExtractedText` interface now carries `nativeFinishReason` + `reasoning` fields, surfaced by the new `buildCompletionMeta()` helper.
+
+### Added — tests
+
+- 11 new test files: `cache`, `structured-output`, `structured-tools`, `rerank`, `health-check`, `generate-video-from-image`, `audit-log`, `progress-notifications`, `pagination`, `content-untrusted`, `error-suggestions`. Test count rises from 205 to 250+.
+
+### Backwards compatibility
+
+All changes are additive. Every new field is optional. No existing caller breaks.
+
+### Citations
+
+- Anthropic announcement: [Response caching](https://openrouter.ai/announcements/response-caching)
+- Arxiv [2602.18764](https://arxiv.org/abs/2602.18764) — Schema-Guided Dialogue / MCP convergence principles
+- Arxiv [2511.03497](https://arxiv.org/abs/2511.03497) — ROSBag MCP, tool-call accuracy vs parameter count
+- Arxiv [2604.11790](https://arxiv.org/abs/2604.11790) — ClawGuard, tool-call boundary enforcement
+- Arxiv [2601.04795](https://arxiv.org/abs/2601.04795) — Tool result parsing defense against prompt injection
+- Apigene's production MCP best-practice guide (March 2026)
+- Phil Schmid, "MCP is Not the Problem, It's your Server" (January 2026)
+- MCP spec [2025-06-18](https://modelcontextprotocol.io/specification/2025-06-18/) — structured outputs, progress notifications
+
+## [4.0.1] — 2026-05-04
+
+Security + hygiene patch from an independent audit pass. Two security fixes (one HIGH, one MEDIUM) and the smithery.yaml manifest catching up to v4.
+
+### Fixed
+
+- **HIGH — `generate_video` read arbitrary local files without sandbox.** `first_frame_image`, `last_frame_image`, and `reference_images` did a raw `fs.readFile(source)` with no path check, so an MCP caller could set e.g. `first_frame_image: "/etc/passwd"` or `reference_images: ["/Users/victim/.ssh/id_rsa"]` and exfiltrate arbitrary files to OpenRouter inside the video-job body. `generate_image`'s `input_images` field already had the correct `resolveInputImage` sandbox; this fix extracts that logic into a shared `resolveSafeInputPath` helper in `path-safety.ts` and routes `generate_video`'s image inputs through it. Sandbox violations now return `UNSAFE_PATH` (previously would have silently succeeded). `OPENROUTER_ALLOW_UNSAFE_PATHS=1` legacy bypass still works.
+- **MEDIUM — Docker image ran as root.** The final stage had no `USER` directive, so any process-level compromise inside the container ran as uid 0. Added an unprivileged `app` user in the runtime stage and `USER app` before `CMD`. Rebuilt with `--chown=app:app` on the `COPY` lines so file permissions are correct from the start.
+- **MEDIUM — `smithery.yaml` stale at v3.0.0.** Bumped to match the package version, added all seven `OPENROUTER_PROVIDER_*` env vars plus `OPENROUTER_MAX_TOKENS` and `OPENROUTER_INPUT_DIR` to both `configSchema.properties` and `config.env`. Smithery UI now shows the full v4 knob set.
+
+### Changed
+
+- **LOW — `OPENROUTER_PROVIDER_ORDER` malformed JSON now logs a warning** instead of silently dropping, so operators get a signal when their env var isn't being honored. Other `OPENROUTER_PROVIDER_*` fields keep the silent-drop policy since their parsers can't usefully distinguish "user intended X" from "user typed garbage."
+- **`.gitignore`** now covers `.smithery/` and `.smithery*` patterns alongside the other CLI credential paths (`.mcpregistry_*`).
+
+### Added
+
+- **`src/tool-handlers/path-safety.ts:resolveSafeInputPath`** — new shared helper for input-path sandboxing. Mirrors `resolveSafeOutputPath`'s semantics but for reads only (no mkdir, no directory creation).
+- **6 new tests** in `src/__tests__/path-safety-input.test.ts` covering the shared helper (relative accept, absolute inside root, traversal reject, `/etc/passwd` reject, `OPENROUTER_OUTPUT_DIR` fallback, `OPENROUTER_ALLOW_UNSAFE_PATHS=1` bypass). Test count now 205 / 205 green.
+
+## [4.0.0] — 2026-05-04
+
+### License
+
+- **Relicensed from MIT to Apache-2.0.** Apache 2.0 is a permissive superset of MIT's terms with an explicit patent grant and trademark clause. The `LICENSE` file now carries the canonical Apache 2.0 text. The `Apache-2.0` SPDX identifier is set in `package.json`, the `org.opencontainers.image.licenses` Dockerfile label, and the README badge.
+
+### Added — provider routing parity
+
+Brings `chat_completion` up to full parity with [`@mcpservers/openrouterai`](https://www.npmjs.com/package/@mcpservers/openrouterai) on OpenRouter's provider-routing controls. See [https://openrouter.ai/docs/features/provider-routing](https://openrouter.ai/docs/features/provider-routing).
+
+- **`provider` tool-arg on `chat_completion`** accepting the full set of OpenRouter routing options: `quantizations`, `ignore`, `sort` (price / throughput / latency), `order`, `require_parameters`, `data_collection` (allow / deny), `allow_fallbacks`. Merges on top of env-var defaults so callers can override per-request.
+- **Model variant suffixes** — `:nitro` (fastest variant) and `:floor` (cheapest variant) pass through natively because OpenRouter parses them server-side. Documented in the README and the `chat_completion` schema.
+- **`OPENROUTER_MAX_TOKENS` env var** — default `max_tokens` cap when the tool call doesn't set one. Useful on low-credit and free-tier accounts to avoid the full-context-window reservation that 402s Gemini image models.
+- **Seven `OPENROUTER_PROVIDER_*` env vars** — one per provider-routing field. Default values apply to every `chat_completion` call; tool-arg overrides still win.
+- **`src/tool-handlers/provider-routing.ts`** — shared helper that parses env defaults (with CSV + JSON-array fallback for `OPENROUTER_PROVIDER_ORDER`), merges overrides, and emits the OpenRouter request body.
+- **18 new unit tests** covering env parsing, override merging, body assembly, and `max_tokens` resolution. Total test count 199 / 199 green.
+
+### Changed
+
+- `chat_completion` tool description now advertises the routing and suffix features.
+- README: first paragraph, env var table, and Usage Examples updated with provider-routing examples; License section notes the Apache 2.0 transition.
+- `.env.example` documents every new env var with inline comments.
+- MCP Registry `server.json` lists the eight new env vars so the Smithery / MCP Registry config UI surfaces them automatically.
+
+### Compatibility
+
+- Fully backward-compatible for callers who don't use `provider` or any `OPENROUTER_PROVIDER_*` env var: same request body, same behavior. Only the license file and the chat_completion schema expand.
+
+## [3.2.0] — 2026-05-03
+
+### Added
+
+- **`generate_image` reference images** ([#15](https://github.com/stabgan/openrouter-mcp-multimodal/issues/15), [#16](https://github.com/stabgan/openrouter-mcp-multimodal/pull/16) by [@ahmadsl](https://github.com/ahmadsl)). New optional `input_images: string[]` field on `generate_image`. Each entry is a local file path, an `http(s)://` URL, or a `data:image/...;base64,...` URL. When provided, the user message becomes a multimodal `ChatCompletionContentPart[]`: a text preamble + one `image_url` block per ref, in input order. Enables character/style consistency, image-to-image, and iterative refinement on chat-image models (Gemini Nano Banana, `openai/gpt-5.4-image-2`).
+- **`generate_image` modalities override.** New optional `modalities: string[]` field on `generate_image`. Defaults to the `["image","text"]` value v3.1.0 hardcodes; provide e.g. `["text"]` to suppress image output for inspection / captioning.
+- **`OPENROUTER_INPUT_DIR` env var.** Sandbox root for `input_images` file paths. Falls back to `OPENROUTER_OUTPUT_DIR`, then `cwd`. Honors `OPENROUTER_ALLOW_UNSAFE_PATHS=1` for the legacy bypass, matching `save_path` semantics.
+- **`generate-image.test.ts`.** 18 new unit tests covering `mimeFromExt`, `resolveInputImage` (data/http passthrough, file → base64, traversal rejection, symlink-aware sandbox, env-var fallback), and `buildUserContent` (text vs multimodal branches, preamble, order preservation). Total test count 181.
+
+## [3.1.1] — 2026-05-03
+
+### Added
+
+- **Published to the official [MCP Registry](https://registry.modelcontextprotocol.io)** as `io.github.stabgan/openrouter-multimodal`. The registry replaced the deprecated community list on `modelcontextprotocol/servers` and is now the upstream data source for `wong2/awesome-mcp-servers`, `mcp.so`, and most modern MCP aggregators.
+- **`llms.txt`** at the repo root — emerging standard for AI-agent crawlers indexing open-source projects. Condensed summary of install, tools, error taxonomy, and security posture.
+- **`server.json`** registry manifest covering the npm package (`@stabgan/openrouter-mcp-multimodal`) and Docker image (`docker.io/stabgan/openrouter-mcp-multimodal`), with environment variable schemas for `OPENROUTER_API_KEY`, `OPENROUTER_DEFAULT_MODEL`, and `OPENROUTER_OUTPUT_DIR`.
+- **Dockerfile labels** — `io.modelcontextprotocol.server.name` (required by the MCP Registry to verify OCI-package namespace ownership) plus the standard OCI `org.opencontainers.image.*` annotations so `docker inspect` and Docker Hub's listing surface pick up the metadata.
+
+### Changed
+
+- **README first paragraph** now names the six MCP-compatible clients (Claude Desktop, Cursor, Kiro, VS Code, Windsurf, Cline) and the six LLM families reached through OpenRouter (Claude, Gemini, GPT, Llama, Qwen, Grok) — high-intent search phrases that were previously buried in the doc.
+- **Repo topics** rebalanced to 20 high-traffic discovery tags: added `claude-desktop`, `cursor`, `gemini`, `ai-agent`, `tts`, `stt`, `vision`; dropped the low-traffic specific ones (`seedance`, `video-understanding`, `audio-transcription`, `audio-generation`, `nodejs`, `ai`, `image-analysis`). Kept irreplaceable specifics: `veo`, `sora`, `model-context-protocol`, `openrouter`, `multimodal`.
+- **GitHub repo description** leads with use case + named clients.
+- **Wiki disabled** — was empty and diluted search indexing.
+
+## [3.1.0] — 2026-05-03
+
+### Added
+
+- **`generate_image` now accepts `aspect_ratio` and `image_size`** ([#8](https://github.com/stabgan/openrouter-mcp-multimodal/issues/8)). `aspect_ratio` supports all 14 OpenRouter-documented values (`1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9`, plus the extended `1:4`, `4:1`, `1:8`, `8:1` honored by `google/gemini-3.1-flash-image-preview`). `image_size` supports `0.5K` / `1K` / `2K` / `4K`. Invalid values are rejected client-side with `INVALID_INPUT` before the request is sent — the local enum was verified against OpenRouter's own server-side schema by probing `POST /chat/completions` with an invalid ratio and cross-checking the returned `values` array. End-to-end verified: four images at 16:9, 9:16, 1:1, and 4:3 were generated through the full handler path and the PNG `IHDR` chunks confirmed aspect ratios within ~3% of the request (tiny delta is model-side rounding to OpenRouter's published resolution buckets).
+- **`generate_image` now accepts `max_tokens`.** Without this cap OpenRouter reserves the full model context window (~29k tokens for Gemini image models) up front, which 402s free-tier / low-credit accounts even when the actual image completion would cost pennies. `4096` works well in practice.
+- **`generate_image` now sends `modalities: ["image", "text"]`** per the current OpenRouter image-generation API. Some multimodal models (including the default `google/gemini-2.5-flash-image`) were already emitting images without this hint, but others reply with text-only refusals unless the modalities are declared explicitly. This removes a latent class of "model returned no image" false negatives.
+
+### Fixed
+
+- **[#13] `fetchHttpResource` now sends a `User-Agent` and `Accept` header.** Node's default `fetch()` ships no UA, and UA-screening CDNs (notably Wikimedia / Varnish) return HTTP 403/400 for such requests. That failure was bubbling to MCP callers through `analyze_image` / `analyze_audio` / `analyze_video` as a bare "HTTP 400" that looked like an OpenRouter / model failure. The UA is now `openrouter-mcp-multimodal/<version> (+<repo-url>)` with the version read from `package.json` at module load so future bumps stay in sync. Originally shipped by [@ZoneoutReal](https://github.com/ZoneoutReal) in [#14](https://github.com/stabgan/openrouter-mcp-multimodal/pull/14); refactored to read the version dynamically in [2843da4](https://github.com/stabgan/openrouter-mcp-multimodal/commit/2843da4).
+- **HTTP response body leak in `openrouter-api.ts::fetchWithRetry`.** On 429 / 5xx retries the previous response body was never consumed or cancelled before the backoff sleep, so undici held the pooled connection open until GC reclaimed the `ReadableStream`. Now calls `res.body?.cancel()` before retrying.
+- **`generate_image` silently dropped images with MIME parameters in their data URLs.** The old regex `^data:([^;]+);base64,(.+)$` only matched data URLs with zero MIME parameters. Models that emit `data:image/png;charset=binary;base64,...` (some Gemini builds do) were falling through and the tool reported "no image in response" even though the model delivered one. Fixed by delegating to the already-correct `parseBase64DataUrl` from `fetch-utils.ts`.
+- **Error shape inconsistency across `search_models` / `get_model_info` / `validate_model`.** These three handlers returned legacy `{ content, isError: true }` without the structured `_meta.code` that every other handler emits. Clients relying on `_meta.code` to branch on error types couldn't tell a `MODEL_NOT_FOUND` from an upstream HTTP failure. Now routed through `toolError` / `classifyUpstreamError`, with missing/invalid `model` input rejected up front.
+
+### Declined
+
+- **[#12]** Encrypted credential storage was declined. MCP servers run locally per-user, so plaintext env var / `.env` is the standard threat model. `.env` is gitignored; OS-level file permissions protect it. An encryption layer would shift complexity onto every user without materially reducing risk for the single-developer local usage that drives this project. Reopen if this ever moves to shared / team environments.
+
+## [3.0.0] — 2026-04-20
+
+### Added
+
+- **`generate_video` tool** — submits a text-to-video job to `POST /api/v1/videos`, polls `GET /api/v1/videos/{id}` until `completed` or `failed`, then downloads the mp4 via `GET /api/v1/videos/{id}/content`. Supports `resolution`, `aspect_ratio`, `duration`, `seed`, `first_frame_image`, `last_frame_image`, `reference_images`, and per-provider `provider` passthrough. Emits MCP `notifications/progress` on every poll. Default model `google/veo-3.1`; override via `OPENROUTER_DEFAULT_VIDEO_GEN_MODEL`.
+- **`get_video_status` tool** — resume a previously-submitted video job by id. Handles pending/processing/completed/failed uniformly.
+- **`analyze_video` tool** — analyze or transcribe video (mp4, mpeg, mov, webm) from a local file, HTTP(S) URL, or base64 data URL. Uses OpenRouter's `video_url` content type. Default model `google/gemini-2.5-flash`.
+- **`video-utils.ts`** — magic-byte detection for mp4/mov (ftyp), webm (EBML), MPEG-PS start codes; SSRF-protected HTTP fetch with 100 MB default cap; data-URL and local-file paths.
+- **`openrouter-errors.ts`** — shared classifier that maps OpenAI SDK errors, raw fetch errors, and OpenRouter REST 4xx/5xx responses to the closed `ErrorCode` enum. Extracts HTTP status from `err.status`, `err.code`, or `HTTP NNN` in the message. Distinguishes credits / ZDR / rate limits / model-not-found / content policy.
+- **`completion-utils.ts`** — shared helpers that render OpenRouter responses to text. Handles multimodal array content and reasoning-only responses (`content: null` + `reasoning`/`reasoning_details`). Detects `finish_reason === 'length'` on reasoning-only output and returns a structured `INVALID_INPUT` with actionable guidance instead of an empty string. Applied to every tool that calls `chat.completions.create` (chat, analyze_image, analyze_audio, analyze_video).
+- **`src/errors.ts`** — closed `ErrorCode` enum (`INVALID_INPUT`, `UNSAFE_PATH`, `UPSTREAM_HTTP`, `UPSTREAM_TIMEOUT`, `UPSTREAM_REFUSED`, `UNSUPPORTED_FORMAT`, `RESOURCE_TOO_LARGE`, `ZDR_INCOMPATIBLE`, `MODEL_NOT_FOUND`, `JOB_FAILED`, `JOB_STILL_RUNNING`, `INTERNAL`). Every handler returns `{ isError: true, _meta: { code, details? } }` so clients can switch on failure modes without regex-parsing free text.
+- **`src/logger.ts`** — one JSON line per event on stderr; level filtered by `OPENROUTER_LOG_LEVEL`. Replaces ad-hoc `console.error` output.
+- **MCP 2025 tool annotations** — every tool advertises `readOnlyHint`, `destructiveHint`, `idempotentHint`.
+- **Fail-fast path sandbox** — `save_path` is validated by `resolveSafeOutputPath` BEFORE spending tokens. Unsafe paths return `UNSAFE_PATH` in milliseconds instead of after the model responds.
+- **`search_models` capability filters** — `capabilities.audio` and `capabilities.video` in addition to `vision`.
+- **Retry-After-aware video client** — `submitVideoJob`, `pollVideoJob`, `downloadVideoContent` on `OpenRouterAPIClient` all use the jitter/Retry-After-aware `fetchWithRetry` with proper `HTTP-Referer` / `X-Title` attribution headers.
+- **Multi-arch Docker image** — CI now builds linux/amd64 + linux/arm64 via buildx + QEMU so Apple Silicon users pull a native image.
+- **Live E2E test harness** — `scripts/live-e2e.mjs` drives every tool over stdio against the real OpenRouter API. 16/16 green in the release run. Additional smokes: `scripts/smoke-npm-mcp.mjs` (tarball install + stdio), `scripts/smoke-docker-mcp.mjs` (container + stdio), `scripts/mock-e2e-video.mjs` (full video-gen pipeline with mocked API client).
+
+### Fixed (live-traffic bugs uncovered during E2E smoke)
+
+- **Reasoning-model empty response (P1)** — `chat_completion`, `analyze_image`, `analyze_audio`, `analyze_video` now detect when a model (e.g. NVIDIA Nemotron VL) runs `max_tokens` out during chain-of-thought and emits `content: null`. Instead of returning an empty string, the tools return `INVALID_INPUT` with a reasoning preview and guidance to raise `max_tokens` or pick a non-reasoning model.
+- **Image-gen silent text-only fallback (P2)** — `generate_image` now returns `UPSTREAM_REFUSED` (`reason: no_image_in_response`) when the model emits chat text without an image payload, instead of passing the chatter through as "success".
+- **Error taxonomy gaps** — `generate_audio`, `generate_image`, `analyze_image`, `analyze_audio`, `chat_completion` were all still using raw string errors without `_meta.code`. All migrated through `toolError` / `classifyUpstreamError`.
+- **Generate-video upstream error mapping** — OpenRouter's `POST /videos` responds with `HTTP 400 — Model X does not exist` for unknown models. The classifier now extracts the 400 status from the message and maps "does not exist" to `MODEL_NOT_FOUND` (not the overly-broad `INVALID_INPUT`).
+- **Fail-fast save_path** — the path sandbox used to run AFTER the OpenRouter call finished, so a rejected write still burned credits. Now validates before submission (sub-millisecond).
+
+### Fixed (security + correctness)
+
+- **BUG-001 — IPv6 SSRF blocklist bypass (P0).** `isBlockedIPv6` missed IPv4-mapped (`::ffff:127.0.0.1`), IPv4-compatible (`::127.0.0.1`), unspecified (`::`), multicast (`ff00::/8`), 6to4 of private IPv4 (`2002::/16`), documentation (`2001:db8::/32`), Teredo (`2001::/32`), ORCHID, and compressed `::1`. Rewrote with a comprehensive IPv6 expander using `node:net`; 22 new test cases cover every class.
+- **BUG-003 — `AbortSignal.timeout` reused across retries (P1).** A shared signal meant retries immediately aborted once the first attempt's deadline elapsed. Each attempt now gets a fresh signal with a full budget.
+- **BUG-004 — No `Retry-After` + no jitter (P1).** `fetchWithRetry` now honors `Retry-After` (integer seconds or HTTP-date) and applies a 0.5×–1.5× jitter with a 10-second ceiling to avoid thundering-herd retries.
+- **BUG-005 — Hardcoded 24 kHz WAV header (P1).** `createWavHeader` and `wrapPcmInWav` now accept a `sampleRate` argument; default remains 24000 for `openai/gpt-audio` compatibility.
+- **BUG-006 — Path traversal on `save_path` (P1).** New `src/tool-handlers/path-safety.ts` sandboxes generate-\* writes against `OPENROUTER_OUTPUT_DIR` (default `process.cwd()`). Absolute paths, `..` escapes, and symlink traversal are rejected.
+- **BUG-007 — MP3 magic-byte false positives (P1).** Tightened `detectAudioFormat`'s raw-frame-sync check: version, layer, bitrate index, and sample-rate index must all be non-reserved.
+- **BUG-008 — `ModelCache` concurrent populate race (P2).** New `ensureFresh(fetcher)` coalesces concurrent callers onto a single in-flight `/models` request.
+- **BUG-009 — Data-URL regex rejected MIME parameters (P2).** New `parseBase64DataUrl` handles `data:audio/wav;charset=binary;base64,...` and similar RFC 2397 variants.
+- **BUG-010 — Vitest ran every test twice (P2).** `vitest.config.ts` now includes only `src/__tests__/**/*.test.ts`.
+- **BUG-011 — No Content-Length short-circuit (P2).** `readResponseBodyWithLimit` rejects oversize responses before streaming and cancels the body on cap breach.
+- **BUG-012 — `prepareImageUrl` mislabeled HTTP images (P2).** `optimizeImage` now returns `{ base64, mime }` with magic-byte MIME sniffing fallback when sharp is unavailable.
+- **BUG-015 — Search-models `limit` not clamped (P3).** Now clamped to `[1, 50]` server-side even when callers bypass the JSON schema.
+- **BUG-016 — `prepare` script forced rebuild on install (P3).** Renamed to `prepublishOnly`. Dockerfile no longer patches `package.json`.
+- **BUG-020 — Tests shipped in `dist/` (P3).** `tsconfig.json` excludes `src/__tests__/**` from emit.
+
+### Changed
+
+- **Install links** — rebuilt all one-click install buttons against the current Kiro / Cursor / VS Code / VS Code Insiders deeplink specs. v2 buttons were broken because they wrapped the server config in `{mcpServers:{...}}` which none of the three IDEs accept. Decoded payloads in an HTML comment for audit.
+- **Dev workflow** — `.kiro/` (specs + agents + steering) is now gitignored so workspace artifacts don't leak into the published repo. `.mcp-smoke-output/` is gitignored too.
+- **Architecture section** — reflects the new `openrouter-errors.ts`, `completion-utils.ts`, `path-safety.ts`, video client methods on `OpenRouterAPIClient`, tightened IPv6 SSRF coverage, and retry-aware backoff.
+
+### Deferred to a future release
+
+- DNS-rebinding TOCTOU pinning via undici.
+- Zod-based runtime arg validation at the dispatch layer.
+- Streaming completions for `chat_completion` / `analyze_*`.
+- MCP resource attachments for generated media (let LLMs re-fetch outputs as MCP resources).
+- Per-model pricing × usage = `_meta.cost_usd` estimation.
+
+## [2.1.0] — Not released
+
+> Internal checkpoint. The fixes listed under Unreleased represent the v2.1 security + correctness audit that lands together with v3 work. If you need a v2.x-only build (without video tools), pin `2.1.0-pre` by building from this commit.
+
+## [2.0.0] — 2026-03
+
+Initial public release with chat, image analysis + generation, audio analysis + generation, model search / info / validate. Native `fetch`, sharp-backed image optimization, streaming audio, SSRF guards for IPv4, Docker + npm + Smithery distribution.

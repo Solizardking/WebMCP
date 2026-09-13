@@ -1,0 +1,11 @@
+{
+  "startedAt": "2026-09-13T14:02:33.578Z",
+  "provider": "Cloudflare Browser Run lab",
+  "destination": "https://solana.com/",
+  "status": "passed",
+  "title": "The Capital Market For Every Asset on Earth",
+  "url": "https://solana.com/",
+  "mode": "document",
+  "tools": [],
+  "screenshot": "artifacts/solana-cloudflare-run.png"
+}

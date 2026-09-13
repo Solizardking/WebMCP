@@ -1,0 +1,67 @@
+# @stabgan/openrouter-mcp-multimodal (v5.0.1)
+
+> MCP server — 19 tools, 300+ OpenRouter models. Text chat, vision/audio/video analysis, image/audio/video generation, model catalog, rerank, health check. Node.js 22+ (Docker uses Node 24).
+
+Get a free API key: https://openrouter.ai/keys
+
+## Install
+
+| Method | Command |
+| :--- | :--- |
+| npx | `npx -y @stabgan/openrouter-mcp-multimodal` (pin: `@5.0.1`) |
+| uvx | `uvx mcp-server-openrouter-multimodal` (needs Node 22+; pin: `OPENROUTER_MCP_NPM_VERSION=5.0.1`) |
+| Docker | `docker run --rm -i -e OPENROUTER_API_KEY=... stabgan/openrouter-mcp-multimodal:5.0.1` |
+| GHCR | `ghcr.io/stabgan/openrouter-mcp-multimodal:5.0.1` |
+
+Full matrix: https://github.com/stabgan/openrouter-mcp-multimodal#install
+
+Required env: `OPENROUTER_API_KEY`. Optional sandboxes: `OPENROUTER_INPUT_DIR`, `OPENROUTER_OUTPUT_DIR`.
+
+## Tools (19)
+
+- `chat_completion` — sync chat, web search, provider routing, caching, reasoning
+- `start_chat_completion` — async background chat job
+- `get_chat_completion_status` — poll async chat by `job_id`
+- `analyze_image` — vision Q&A (`image_path`, optional `question`)
+- `analyze_audio` — transcribe / analyze audio
+- `analyze_video` — video Q&A
+- `generate_image` — text-to-image via chat completions (+ reference images)
+- `generate_image_dedicated` — text-to-image via `/api/v1/images`
+- `generate_audio` — TTS / music via chat completions
+- `text_to_speech` — dedicated TTS API; free default `deepgram/flux-tts:free` with `flux-alexis-en`, output `mp3`/`pcm`; discover models with `GET /api/v1/models?output_modalities=speech`
+- `speech_to_text` — dedicated STT API (Whisper, GPT-4o transcribe)
+- `generate_video` — async text-to-video
+- `generate_video_from_image` — image-to-video
+- `get_video_status` — poll / resume video jobs
+- `search_models` — paginated catalog search
+- `get_model_info` — pricing, context, modalities
+- `validate_model` — cheap model ID check
+- `rerank_documents` — OpenRouter `/rerank`
+- `health_check` — API key + reachability probe
+
+Errors: `_meta.code` — `INVALID_INPUT`, `UNSAFE_PATH`, `UPSTREAM_HTTP`, `UPSTREAM_TIMEOUT`, `MODEL_NOT_FOUND`, `JOB_STILL_RUNNING`, etc.
+
+## Binary tool results (v4.7.0+)
+
+Generate tools with optional `save_path`:
+
+- **`save_path` set** → text pointer + `_meta.save_path` only (no inline media)
+- **no `save_path`, under ceiling** → inline media (video uses MCP `resource` blocks)
+- **no `save_path`, over ceiling** → text hint to use `save_path`
+
+Inline defaults: image/audio 1 MiB, video 10 MiB. Env: `OPENROUTER_INLINE_MAX_BYTES`, `OPENROUTER_IMAGE_INLINE_MAX_BYTES`, `OPENROUTER_AUDIO_INLINE_MAX_BYTES`, `OPENROUTER_VIDEO_INLINE_MAX_BYTES`.
+
+## Security
+
+- Input/output path sandboxes (`OPENROUTER_INPUT_DIR`, `OPENROUTER_OUTPUT_DIR`); bypass `OPENROUTER_ALLOW_UNSAFE_PATHS=1`
+- SSRF blocklist on URL fetches
+- Async `job_id` disk reads sandboxed (4.7.0)
+- Report issues: SECURITY.md (private disclosure)
+
+## Links
+
+- Repo: https://github.com/stabgan/openrouter-mcp-multimodal
+- Changelog: https://github.com/stabgan/openrouter-mcp-multimodal/blob/main/CHANGELOG.md
+- npm: https://www.npmjs.com/package/@stabgan/openrouter-mcp-multimodal
+- MCP Registry: https://registry.modelcontextprotocol.io/servers/io.github.stabgan/openrouter-multimodal
+- License: Apache-2.0
