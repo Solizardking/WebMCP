@@ -6,7 +6,9 @@ Clawd's plugin package for OpenAI-compatible plugin hosts. Version 0.1.0 provide
 - `list-skills`: discover bundled Clawd/Solana guides.
 - `get-skill`: read a guide by exact ID.
 
-MCP endpoint: `https://solgpt-pump-mcp-original.fly.dev/plugin/mcp`
+MCP endpoint: `https://solgpt.trade/plugin/mcp`
+
+Human hub: [solgpt.trade/mc](https://solgpt.trade/mc). `/mc` is a web page; install this plugin using `/plugin/mcp`. The broader desk endpoint `/mcp` has a different catalog and is not this three-tool reference plugin.
 
 The portable entry points are `plugin.json`, `mcp.json`, and `skills/`. `.codex-plugin/plugin.json` and `.mcp.json` provide compatibility with older Codex plugin loaders. Register the HTTPS endpoint in ChatGPT developer mode to test the MCP connection. The plugin does not need an OpenAI API key or wallet credential from its users.
 

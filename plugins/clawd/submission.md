@@ -5,10 +5,10 @@ Name: Clawd
 Publisher: Clawd (publisher must select its verified identity in Platform).
 Short description: Pump.fun fee references and Solana agent guides.
 Category: Productivity
-Website: https://clawdcompute.us/developers
+Website: https://solgpt.trade/mc
 Privacy draft: https://clawdcompute.us/privacy
 Terms draft: https://clawdcompute.us/terms
-MCP: https://solgpt-pump-mcp-original.fly.dev/plugin/mcp
+MCP: https://solgpt.trade/plugin/mcp
 Authentication: none for this public reference-only endpoint.
 Logo: assets/logo.png
 UI resources / CSP: none; this release returns text tools only.
@@ -42,7 +42,11 @@ Use **With MCP** with the universal endpoint, then upload `releases/clawd-skills
 
 The `list-skills` and `get-skill` tools serve reference guides from the server. Tool names alone do not implement the MCP static-skills extension or guarantee automatic skill import during Scan Tools. This release uses an explicit skills upload. Review server-returned guides as reference content, not additional installed skills or authority to execute transactions.
 
-## Verified locally and live, 2026-09-09
+## Canonical endpoint migration
+
+The current package uses `https://solgpt.trade/plugin/mcp`; `https://solgpt.trade/mc` is the human hub. The portable handler retains the same three read-only tools, original fee reference, and 57 guide bodies. Re-run the reviewer cases against this endpoint before submission. The historical checks below describe the original Fly deployment and do not establish current domain verification or directory approval.
+
+## Historical checks: original Fly endpoint, 2026-09-09
 
 - TypeScript build and all five library tests passed.
 - Codex plugin manifest, skill frontmatter, and referenced assets passed the plugin-creator validator.

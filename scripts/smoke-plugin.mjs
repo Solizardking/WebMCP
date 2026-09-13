@@ -1,21 +1,23 @@
 import assert from 'node:assert/strict';
-const endpoint = process.env.CLAWD_PLUGIN_URL || 'https://solgpt-pump-mcp-original.fly.dev/plugin/mcp';
+import { readMcpResponse } from './mcp-response.mjs';
+const endpoint = process.env.CLAWD_PLUGIN_URL || 'https://solgpt.trade/plugin/mcp';
 let session;
 let id = 0;
 async function rpc(method, params = {}) {
+  const requestId = ++id;
   const response = await fetch(endpoint, {
     method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream', ...(session ? { 'mcp-session-id': session } : {}) },
-    body: JSON.stringify({ jsonrpc: '2.0', id: ++id, method, params }), signal: AbortSignal.timeout(30_000),
+    body: JSON.stringify({ jsonrpc: '2.0', id: requestId, method, params }), signal: AbortSignal.timeout(30_000),
   });
   assert.equal(response.status, 200);
   session = response.headers.get('mcp-session-id') || session;
-  return response.json();
+  return readMcpResponse(response, requestId);
 }
 try {
   const init = await rpc('initialize', { protocolVersion: '2025-03-26', capabilities: {}, clientInfo: { name: 'clawd-release-smoke', version: '0.1.0' } });
   assert.equal(init.result.serverInfo.name, 'clawd');
   const initialized = await fetch(endpoint, {
-    method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream', 'mcp-session-id': session },
+    method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream', ...(session ? { 'mcp-session-id': session } : {}) },
     body: JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }), signal: AbortSignal.timeout(30_000),
   });
   assert.equal(initialized.status, 202);

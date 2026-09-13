@@ -8,14 +8,19 @@ export const CLI_BINS = ['x402', 'ooda'] as const;
 export function x402HelpText(): string {
   return (
     'x402 authorize --origin https://x402.life --secret-key <base58>\n' +
-    '  One-shot SIWX login against /authorize. Prints JSON {token,walletAddress,userId}.\n'
+    '  One-shot SIWX login against /authorize. Prints JSON {token,walletAddress,userId}.\n' +
+    '  Key input: --secret-key / X402_SECRET_KEY, or --keypair / X402_KEYPAIR.\n' +
+    '  --origin overrides X402_ORIGIN; the default remains https://x402.life.\n' +
+    '  Desk hub: https://solgpt.trade/mc. MCP clients use /mcp; this command is a login helper.\n'
   );
 }
 
 export function oodaHelpText(): string {
   return (
     'ooda --ticks 8 --seed 42 --sleep 0 [--llm]\n' +
-    '  Paper OODA loop. Exits with the loop exitCode.\n'
+    '  Paper OODA loop. Exits with the loop exitCode.\n' +
+    '  Writes OODA_JOURNAL_PATH, or ./ooda-journal/ticks.jsonl.\n' +
+    '  Configured memory integrations and --llm may make provider requests.\n'
   );
 }
 

@@ -1,0 +1,174 @@
+{
+  "checkedAt": "2026-09-13T07:38:59.661Z",
+  "worker": {
+    "name": "solgpt-webmcp",
+    "version": "86081cb9-e191-47d9-9dbe-509c9ab880f3",
+    "url": "https://solgpt-webmcp.mynameisjeffspicoli.workers.dev",
+    "routes": [
+      "solgpt.trade/mc*",
+      "solgpt.trade/plugin/mcp*",
+      "solgpt.trade/pump/mcp*"
+    ]
+  },
+  "dns": {
+    "name": "solgpt.trade",
+    "type": "CNAME",
+    "target": "ce36ee1b610ab3e7.vercel-dns-017.com",
+    "proxied": true,
+    "homepage": 200,
+    "wwwHomepage": 200
+  },
+  "plugin": {
+    "checkedAt": "2026-09-13T07:31:43.761Z",
+    "ok": true,
+    "endpoint": "https://solgpt.trade/plugin/mcp",
+    "tools": [
+      "get-fee-tier",
+      "list-skills",
+      "get-skill"
+    ],
+    "readCalls": 3,
+    "rejectedTradingTool": true,
+    "rejectedTraversal": true,
+    "rejectedUnknownGuide": true,
+    "annotationsVerified": true
+  },
+  "mcp": [
+    {
+      "base": "https://solgpt-webmcp.mynameisjeffspicoli.workers.dev",
+      "path": "/mcp",
+      "method": "initialize",
+      "status": 200,
+      "contentType": "text/event-stream",
+      "server": {
+        "name": "solgpt-solana-agent",
+        "version": "0.1.0"
+      }
+    },
+    {
+      "base": "https://solgpt-webmcp.mynameisjeffspicoli.workers.dev",
+      "path": "/mcp",
+      "method": "tools/list",
+      "status": 200,
+      "contentType": "text/event-stream",
+      "tools": [
+        "solana_get_wallet_context",
+        "solana_resolve_token",
+        "solana_get_swap_quote",
+        "solgpt_ask",
+        "clawd_list_models",
+        "stonk_market",
+        "stonk_token",
+        "stonk_launch_status",
+        "factory_catalog",
+        "factory_whoami"
+      ]
+    },
+    {
+      "base": "https://solgpt-webmcp.mynameisjeffspicoli.workers.dev",
+      "path": "/pump/mcp",
+      "method": "tools/list",
+      "status": 200,
+      "contentType": "text/event-stream",
+      "tools": [
+        "pump_get_relay_health",
+        "pump_list_launches",
+        "pump_get_launch",
+        "render_pump_widget"
+      ]
+    },
+    {
+      "base": "https://solgpt.trade",
+      "path": "/mcp",
+      "method": "initialize",
+      "status": 200,
+      "contentType": "text/event-stream",
+      "server": {
+        "name": "solgpt-solana-agent",
+        "version": "0.1.0"
+      }
+    },
+    {
+      "base": "https://solgpt.trade",
+      "path": "/mcp",
+      "method": "tools/list",
+      "status": 200,
+      "contentType": "text/event-stream",
+      "tools": [
+        "solana_get_wallet_context",
+        "solana_resolve_token",
+        "solana_get_swap_quote",
+        "solgpt_ask",
+        "clawd_list_models",
+        "stonk_market",
+        "stonk_token",
+        "stonk_launch_status",
+        "factory_catalog",
+        "factory_whoami"
+      ]
+    },
+    {
+      "base": "https://solgpt.trade",
+      "path": "/pump/mcp",
+      "method": "tools/list",
+      "status": 200,
+      "contentType": "text/event-stream",
+      "tools": [
+        "pump_get_relay_health",
+        "pump_list_launches",
+        "pump_get_launch",
+        "render_pump_widget"
+      ]
+    }
+  ],
+  "reads": [
+    {
+      "tool": "clawd_list_models",
+      "status": 200,
+      "isError": false,
+      "count": 18
+    },
+    {
+      "tool": "solana_resolve_token",
+      "status": 200,
+      "isError": false,
+      "count": 1
+    },
+    {
+      "tool": "pump_get_relay_health",
+      "status": 200,
+      "isError": false,
+      "relayStatus": "ok"
+    }
+  ],
+  "browser": {
+    "widths": [
+      390,
+      1440
+    ],
+    "horizontalOverflow": false,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "failedAssets": 0,
+    "passed": true,
+    "homepageOriginMatches": true
+  },
+  "limits": [
+    "No signed trade, payment, wallet login or paid OpenAI call performed",
+    "CLI local package rebuilt; published 0.1.0 smoke passed but hashes differ from local rebuild"
+  ],
+  "csp": {
+    "approved": true,
+    "deployed": true,
+    "scope": "/mc HTML",
+    "allowedScripts": [
+      "'self'",
+      "https://static.cloudflareinsights.com"
+    ],
+    "allowedConnections": [
+      "'self'",
+      "https://cloudflareinsights.com"
+    ],
+    "browserRecheck": "passed"
+  }
+}

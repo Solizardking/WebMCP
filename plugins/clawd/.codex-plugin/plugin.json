@@ -6,7 +6,7 @@
     "name": "Clawd",
     "url": "https://solgpt.us"
   },
-  "homepage": "https://clawdcompute.us/developers",
+  "homepage": "https://solgpt.trade/mc",
   "keywords": [
     "clawd",
     "solana",
@@ -24,7 +24,7 @@
     "capabilities": [
       "Read"
     ],
-    "websiteURL": "https://clawdcompute.us/developers",
+    "websiteURL": "https://solgpt.trade/mc",
     "defaultPrompt": [
       "Show the documented Pump.fun fee tiers.",
       "List the available Clawd Solana guides.",

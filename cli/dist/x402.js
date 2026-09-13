@@ -34,9 +34,9 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
-// node_modules/.pnpm/tweetnacl@1.0.3/node_modules/tweetnacl/nacl-fast.js
+// ../../../node_modules/.pnpm/tweetnacl@1.0.3/node_modules/tweetnacl/nacl-fast.js
 var require_nacl_fast = __commonJS({
-  "node_modules/.pnpm/tweetnacl@1.0.3/node_modules/tweetnacl/nacl-fast.js"(exports, module) {
+  "../../../node_modules/.pnpm/tweetnacl@1.0.3/node_modules/tweetnacl/nacl-fast.js"(exports, module) {
     (function(nacl3) {
       "use strict";
       var gf = function(init) {
@@ -2258,16 +2258,16 @@ var require_nacl_fast = __commonJS({
   }
 });
 
-// cli/x402.ts
+// x402.ts
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { Keypair as Keypair2 } from "@solana/web3.js";
 
-// src/services/x402Siwx.ts
-var import_tweetnacl2 = __toESM(require_nacl_fast(), 1);
+// ../../../src/services/x402Siwx.ts
+var import_tweetnacl2 = __toESM(require_nacl_fast());
 import { Keypair } from "@solana/web3.js";
 
-// src/services/walletAuth.ts
+// ../../../src/services/walletAuth.ts
 var import_tweetnacl = __toESM(require_nacl_fast(), 1);
 import { PublicKey } from "@solana/web3.js";
 var B58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
@@ -2318,7 +2318,7 @@ function uint8ArrayToBase58(bytes) {
   return bs58.encode(bytes);
 }
 
-// src/services/x402Siwx.ts
+// ../../../src/services/x402Siwx.ts
 var SOLANA_MAINNET_CAIP2 = "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp";
 var AUTHORIZE_PATH = "/authorize";
 var SIWX_HEADER_NAME = "SIGN-IN-WITH-X";
@@ -2414,7 +2414,7 @@ function signSiwxProof(secretKey, challenge) {
   });
 }
 
-// src/services/x402Authorize.ts
+// ../../../src/services/x402Authorize.ts
 function authorizeUrl(origin = "") {
   if (!origin) return AUTHORIZE_PATH;
   return `${origin.replace(/\/+$/, "")}${AUTHORIZE_PATH}`;
@@ -2471,13 +2471,13 @@ async function authorizeWithSiwx(opts) {
   };
 }
 
-// cli/help.ts
+// help.ts
 var CLI_NPM_NAME = "@x402solana/cli";
 function x402HelpText() {
-  return "x402 authorize --origin https://x402.life --secret-key <base58>\n  One-shot SIWX login against /authorize. Prints JSON {token,walletAddress,userId}.\n";
+  return "x402 authorize --origin https://x402.life --secret-key <base58>\n  One-shot SIWX login against /authorize. Prints JSON {token,walletAddress,userId}.\n  Key input: --secret-key / X402_SECRET_KEY, or --keypair / X402_KEYPAIR.\n  --origin overrides X402_ORIGIN; the default remains https://x402.life.\n  Desk hub: https://solgpt.trade/mc. MCP clients use /mcp; this command is a login helper.\n";
 }
 function oodaHelpText() {
-  return "ooda --ticks 8 --seed 42 --sleep 0 [--llm]\n  Paper OODA loop. Exits with the loop exitCode.\n";
+  return "ooda --ticks 8 --seed 42 --sleep 0 [--llm]\n  Paper OODA loop. Exits with the loop exitCode.\n  Writes OODA_JOURNAL_PATH, or ./ooda-journal/ticks.jsonl.\n  Configured memory integrations and --llm may make provider requests.\n";
 }
 function npxCli(bin) {
   return `npx -p ${CLI_NPM_NAME} ${bin}`;
@@ -2501,7 +2501,7 @@ function cliGuideSnippets(origin) {
   };
 }
 
-// cli/x402.ts
+// x402.ts
 var B58_ALPHABET2 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 var B58_MAP2 = {};
 for (let i = 0; i < B58_ALPHABET2.length; i++) B58_MAP2[B58_ALPHABET2[i]] = i;

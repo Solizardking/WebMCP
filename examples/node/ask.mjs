@@ -1,4 +1,6 @@
 import { askOpenAI } from '../../dist/openai/index.js';
+// Defaults to the public reference catalog at https://solgpt.trade/plugin/mcp.
+// URL/token overrides remain available for a private MCP server.
 try {
   const result = await askOpenAI({
     apiKey: process.env.OPENAI_API_KEY || '',

@@ -6,7 +6,7 @@
  */
 import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
-import { runOodaLoop } from '../src/lib/ooda/loop.ts';
+import { runOodaLoop } from '../../../src/lib/ooda/loop.ts';
 import { oodaHelpText } from './help.ts';
 
 export { oodaHelpText, CLI_NPM_NAME, cliGuideSnippets, npxCli } from './help.ts';

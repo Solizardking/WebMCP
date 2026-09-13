@@ -129,7 +129,7 @@ test('browser cleanup works with external signals and registration failures', as
 });
 
 test('OpenAI uses Responses with only the read-only Pump tools and keeps auth server-side', async () => {
-  const { askOpenAI, PUMP_READ_TOOLS } = await import('../dist/openai/index.js');
+  const { askOpenAI, PUBLIC_CLAWD_REFERENCE_TOOLS } = await import('../dist/openai/index.js');
   let body;
   const result = await askOpenAI({ apiKey: 'test-openai', prompt: 'fees', pump: { authorization: 'test-pump' }, fetch: async (url, init) => {
     assert.equal(url, 'https://api.openai.com/v1/responses');
@@ -137,7 +137,8 @@ test('OpenAI uses Responses with only the read-only Pump tools and keeps auth se
     body = JSON.parse(init.body);
     return Response.json({ id: 'test', status: 'completed', output: [{ type: 'mcp_call', name: 'get-fee-tier' }, { type: 'message', content: [{ type: 'output_text', text: 'Reference fees' }] }] });
   } });
-  assert.deepEqual(body.tools[0].allowed_tools, [...PUMP_READ_TOOLS]);
+  assert.deepEqual(body.tools[0].allowed_tools, [...PUBLIC_CLAWD_REFERENCE_TOOLS]);
+  assert.equal(body.tools[0].server_url, 'https://solgpt.trade/plugin/mcp');
   assert.equal(body.tools[0].authorization, 'test-pump');
   assert.equal(body.store, false);
   assert.equal(result.answer, 'Reference fees');

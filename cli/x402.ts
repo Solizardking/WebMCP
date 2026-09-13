@@ -9,8 +9,8 @@
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { Keypair } from '@solana/web3.js';
-import { authorizeWithSiwx } from '../src/services/x402Authorize.ts';
-import { DEFAULT_AUTHORIZE_ORIGIN } from '../src/services/x402Siwx.ts';
+import { authorizeWithSiwx } from '../../../src/services/x402Authorize.ts';
+import { DEFAULT_AUTHORIZE_ORIGIN } from '../../../src/services/x402Siwx.ts';
 import { x402HelpText } from './help.ts';
 
 export { x402HelpText, CLI_NPM_NAME, cliGuideSnippets, npxCli } from './help.ts';

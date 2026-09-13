@@ -4,6 +4,7 @@
  * origin. Desk/API traffic is proxied to the Vercel production alias.
  */
 import { createPumpMcpHandler, createX402McpHandler } from '../../dist/mcp/index.js';
+import { fetchSolgpt } from './solgpt-routes.js';
 
 const DESK = 'https://solgpt-trading-desk.vercel.app';
 
@@ -100,6 +101,9 @@ function cors(req, headers) {
 export default {
   async fetch(request, env = {}) {
     const url = new URL(request.url);
+    if (env.MCP_PUBLIC_ORIGIN === 'https://solgpt.trade' || url.hostname === 'solgpt.trade' || url.hostname === 'www.solgpt.trade') {
+      return fetchSolgpt(request);
+    }
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: cors(request, new Headers()) });
     }

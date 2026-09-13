@@ -5,4 +5,5 @@ export * from "./pumpWidget.js";
 export * from "./handlers.js";
 export * from "./toolResults.js";
 export * from "./factoryTools.js";
+export * from "./buildClawdPluginServer.js";
 //# sourceMappingURL=index.js.map

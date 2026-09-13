@@ -1,0 +1,1 @@
+{"version":3,"file":"buildClawdPluginServer.d.ts","sourceRoot":"","sources":["../../src/mcp/buildClawdPluginServer.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,SAAS,EAAE,MAAM,8BAA8B,CAAC;AAGzD,OAAO,KAAK,EAAE,kBAAkB,EAAE,MAAM,oCAAoC,CAAC;AAE7E,eAAO,MAAM,kBAAkB,uDAAwD,CAAC;AACxF,eAAO,MAAM,6BAA6B;;;;CAIzC,CAAC;AAEF,uFAAuF;AACvF,wBAAgB,yBAAyB,CAAC,IAAI,GAAE,kBAA8C,aA6B7F"}

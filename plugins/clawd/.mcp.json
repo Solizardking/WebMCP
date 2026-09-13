@@ -2,7 +2,7 @@
   "mcpServers": {
     "clawd": {
       "type": "http",
-      "url": "https://solgpt-pump-mcp-original.fly.dev/plugin/mcp"
+      "url": "https://solgpt.trade/plugin/mcp"
     }
   }
 }

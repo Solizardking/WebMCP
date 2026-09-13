@@ -1,6 +1,7 @@
 /** Server-only OpenAI integration. Never import into a browser entry point. */
 export const PUMP_READ_TOOLS = ['get-token-info', 'get-fee-tier', 'list-skills', 'get-skill'];
-export const DEFAULT_PUMP_MCP_URL = 'https://solgpt-pump-mcp-original.fly.dev/mcp';
+export const PUBLIC_CLAWD_REFERENCE_TOOLS = ['get-fee-tier', 'list-skills', 'get-skill'];
+export const DEFAULT_PUMP_MCP_URL = 'https://solgpt.trade/plugin/mcp';
 export const PUMPFUN_LIVE_TOOLS = [
     'pump_get_relay_health',
     'pump_list_launches',
@@ -12,13 +13,19 @@ export function createPumpMcpTool(options = {}) {
     const url = new URL(options.url ?? DEFAULT_PUMP_MCP_URL);
     if (url.protocol !== 'https:' || url.username || url.password)
         throw new Error('Pump MCP requires an HTTPS URL without embedded credentials');
+    const publicEndpoint = new URL(DEFAULT_PUMP_MCP_URL);
+    const publicCatalog = url.origin === publicEndpoint.origin && url.pathname.replace(/\/+$/, '') === publicEndpoint.pathname;
+    // Explicit custom endpoints retain the original token-information catalog.
+    // The public plugin serves only its documented fee tiers and bundled guides.
     return {
         type: 'mcp',
         server_label: 'clawd_pump',
-        server_description: 'Clawd Pump.fun token information, documented fee tiers, and bundled agent guides. Read-only.',
+        server_description: publicCatalog
+            ? 'Clawd documented fee tiers and bundled agent guides. Public read-only reference library.'
+            : 'Clawd Pump.fun token information, documented fee tiers, and bundled agent guides. Read-only.',
         server_url: url.toString(),
         ...(options.authorization ? { authorization: options.authorization } : {}),
-        allowed_tools: [...PUMP_READ_TOOLS],
+        allowed_tools: [...(publicCatalog ? PUBLIC_CLAWD_REFERENCE_TOOLS : PUMP_READ_TOOLS)],
         require_approval: 'never',
     };
 }

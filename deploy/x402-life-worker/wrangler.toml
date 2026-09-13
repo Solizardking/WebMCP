@@ -11,3 +11,16 @@ zone_name = "x402.life"
 [[routes]]
 pattern = "www.x402.life/*"
 zone_name = "x402.life"
+
+# Deploy only these MCP surfaces; the existing solgpt.trade application remains its origin.
+[env.solgpt]
+name = "solgpt-webmcp"
+workers_dev = true
+routes = [
+  { pattern = "solgpt.trade/mc*", zone_name = "solgpt.trade" },
+  { pattern = "solgpt.trade/plugin/mcp*", zone_name = "solgpt.trade" },
+  { pattern = "solgpt.trade/pump/mcp*", zone_name = "solgpt.trade" }
+]
+
+[env.solgpt.vars]
+MCP_PUBLIC_ORIGIN = "https://solgpt.trade"
