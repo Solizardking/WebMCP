@@ -2,13 +2,11 @@
 import { Readable } from 'node:stream';
 import { config } from 'dotenv';
 
-config({ quiet: true }); // Load .env file if present (quiet — stdio transport owns stdout)
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { ToolHandlers } from './tool-handlers.js';
 import { logger } from './logger.js';
-import { SERVER_VERSION } from './version.js';
-import { SERVER_ICON } from './tool-icons.js';
+import { createMcpServer } from './server.js';
+
+config({ quiet: true }); // stdio transport owns stdout
 
 const DEFAULT_MODEL = 'google/gemma-4-26b-a4b-it:free';
 
@@ -40,22 +38,8 @@ if (!apiKey) {
 const defaultModel =
   process.env.OPENROUTER_DEFAULT_MODEL || process.env.DEFAULT_MODEL || DEFAULT_MODEL;
 
-const server = new Server(
-  {
-    name: 'openrouter-multimodal-server',
-    version: SERVER_VERSION,
-    title: 'OpenRouter MCP Multimodal',
-    description:
-      'MCP server for OpenRouter — chat with 300+ LLMs, analyze/generate images, audio, and video.',
-    websiteUrl: 'https://github.com/stabgan/openrouter-mcp-multimodal',
-    icons: SERVER_ICON,
-  },
-  { capabilities: { tools: {} } },
-);
-
+const server = createMcpServer(apiKey, defaultModel);
 server.onerror = (error) => logFatal('mcpError', error);
-
-new ToolHandlers(server, apiKey, defaultModel);
 
 async function shutdown(): Promise<void> {
   await server.close();

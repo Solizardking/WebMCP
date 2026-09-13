@@ -57,6 +57,8 @@ Unlike text-only MCP servers, one install covers the **full multimodal surface**
 
 ## Quick start
 
+For a persistent remote endpoint from this checkout, see [Railway remote MCP](docs/RAILWAY.md).
+
 **1. Get an API key** (free tier works) → [openrouter.ai/keys](https://openrouter.ai/keys)
 
 **2. Run the server**
