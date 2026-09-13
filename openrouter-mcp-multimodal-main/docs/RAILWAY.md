@@ -13,6 +13,11 @@ Service: `1e8dc339-2211-4f07-a188-2f2aa7d06977` (`openrouter-mcp`).
 `/healthz`, enables automatic restarts, and disables idle sleeping. One replica
 keeps the existing in-memory async job state consistent across requests.
 
+These settings are also applied directly to the Railway service. On the initial
+deployment, Railway detected the configuration file but started the Dockerfile's
+stdio command. Keep the service start command set to `node dist/http.js`, health
+path `/healthz`, restart policy `ALWAYS`, and sleeping disabled when recreating it.
+
 Set these Railway service variables before deploying:
 
 - `OPENROUTER_API_KEY`: the upstream key from the local `.env`.
@@ -64,4 +69,7 @@ cases. The new HTTP tests cover authentication, origin rejection, health, and
 concurrent client initialization/listing/ping. Integration tests permit upstream
 soft failures and are not proof of successful model inference.
 
-Deployment is pending approval to transfer the two credentials to Railway.
+The credential transfer was approved and service variables have been configured.
+The public endpoint is `https://openrouter-mcp-production-62d1.up.railway.app/mcp`.
+The private `.mcp.remote.json` contains a ready-to-import client entry with its
+bearer token. That file is Git-ignored and readable only by the local user.
