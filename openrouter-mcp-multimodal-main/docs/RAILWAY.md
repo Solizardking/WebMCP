@@ -9,13 +9,14 @@ Service: `1e8dc339-2211-4f07-a188-2f2aa7d06977` (`openrouter-mcp`).
 
 ## Deployment configuration
 
-`railway.json` builds the Dockerfile, starts `node dist/http.js`, configures
+`railway.json` builds `Dockerfile.railway`, starts `node dist/http.js`, configures
 `/healthz`, enables automatic restarts, and disables idle sleeping. One replica
 keeps the existing in-memory async job state consistent across requests.
 
 These settings are also applied directly to the Railway service. On the initial
-deployment, Railway detected the configuration file but started the Dockerfile's
-stdio command. Keep the service start command set to `node dist/http.js`, health
+deployment, Railway detected the configuration file but started the original
+Dockerfile's stdio command. `Dockerfile.railway` explicitly starts HTTP, and
+`RAILWAY_DOCKERFILE_PATH=Dockerfile.railway` selects it. Keep the service start command set to `node dist/http.js`, health
 path `/healthz`, restart policy `ALWAYS`, and sleeping disabled when recreating it.
 
 Set these Railway service variables before deploying:
@@ -29,6 +30,7 @@ Set these Railway service variables before deploying:
 - `OPENROUTER_INPUT_DIR=/tmp/openrouter-input`.
 - `OPENROUTER_OUTPUT_DIR=/tmp/openrouter-output`.
 - `PORT=8080`.
+- `RAILWAY_DOCKERFILE_PATH=Dockerfile.railway`.
 
 Deploy only this project directory, excluding `.env`, client secrets, and sibling
 projects. Generate a Railway public domain targeting port 8080. The endpoint is
@@ -73,3 +75,14 @@ The credential transfer was approved and service variables have been configured.
 The public endpoint is `https://openrouter-mcp-production-62d1.up.railway.app/mcp`.
 The private `.mcp.remote.json` contains a ready-to-import client entry with its
 bearer token. That file is Git-ignored and readable only by the local user.
+
+Live verification on 2026-09-13, deployment `22fca1ef-50a3-48ae-86a5-d740089e7d7a`:
+
+- Public `/healthz`: HTTP 200.
+- Unauthenticated `/mcp`: HTTP 401.
+- Authenticated initialization: server 5.0.1; all 19 tools listed; ping passed.
+- A real `chat_completion` through the public MCP endpoint returned
+  `MCP connection works` with no tool error, using the current `.env` default
+  `google/gemma-4-26b-a4b-it:free`.
+- Effective deployment settings: HTTP entry point, health check, one replica,
+  `ALWAYS` restart policy, `sleepApplication: false`.
